@@ -70,7 +70,7 @@ func main() {
 func calculateParallelism(maxCPU, maxMemory, cpu, memory int64) *int64 {
 	parallelismByCPU := maxCPU / cpu
 	parallelismByMemory := maxMemory / memory
-	if parallelismByCPU > parallelismByMemory {
+	if parallelismByCPU < parallelismByMemory {
 		return &parallelismByCPU
 	}
 	return &parallelismByMemory
