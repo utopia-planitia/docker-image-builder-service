@@ -51,26 +51,11 @@ func (p *QueuedProxy) Handle(w http.ResponseWriter, r *http.Request) {
 		image = t[0]
 	}
 
-	//	// forward request with free build slot
-	//	if p.queue.TryAcquire(1) {
-	//		defer p.queue.Release(1)
-	//		defer log.Printf("finished building image: %s\n", image)
-	//		log.Printf("building image: %s\n", image)
-	//		p.proxy.ServeHTTP(w, r)
-	//		return
-	//	}
-
+	// build images in free slot
 	log.Printf("queued image: %s\n", image)
 	p.queue.Acquire(context.Background(), 1)
-
-	// serialize body until build happens?
-
-	p.buildImage(w, r, image)
-}
-
-func (p *QueuedProxy) buildImage(w http.ResponseWriter, r *http.Request, image string) {
 	defer p.queue.Release(1)
-	defer log.Printf("finished building image: %s\n", image)
 	log.Printf("building image: %s\n", image)
+	defer log.Printf("finished building image: %s\n", image)
 	p.proxy.ServeHTTP(w, r)
 }
