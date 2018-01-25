@@ -1,0 +1,17 @@
+version: '3.0'
+
+services:
+  queue:
+    build: .
+    command:
+      - -port=:2375
+      - -target=http://dind:2375/
+    links:
+      - dind
+    ports:
+      - 2375:2375
+  dind:
+    image: docker:17.11.0-ce-dind
+    privileged: true
+    environment:
+      DOCKER_DRIVER: overlay2
