@@ -11,6 +11,7 @@ import (
 	"os/signal"
 	"regexp"
 	"syscall"
+	"time"
 
 	"github.com/damoon/docker-image-builder-service/pkg/proxy"
 )
@@ -79,6 +80,7 @@ func calculateParallelism(maxCPU, maxMemory, cpu, memory int64) *int64 {
 func buildServer(url *url.URL, parallelism, cpu, memory *int64, addr *string, reg *regexp.Regexp) *http.Server {
 
 	reverseProxy := httputil.NewSingleHostReverseProxy(url)
+	reverseProxy.FlushInterval = 100 * time.Millisecond
 
 	queuedProxy := proxy.New(reverseProxy, *parallelism, *cpu, *memory, reg)
 
