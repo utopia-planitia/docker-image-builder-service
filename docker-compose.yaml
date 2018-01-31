@@ -1,20 +1,18 @@
 version: '3.0'
 
 services:
-  queue:
-    build: .
-    command:
-      - -port=:2375
-      - -target=http://dind:2376/
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker/scheduler/Dockerfile
     links:
-      - dind
+      - worker
     ports:
       - 2375:2375
-  dind:
+  worker:
     image: docker:17.11.0-ce-dind
-    command:
-      - dockerd
-      - --host=tcp://0.0.0.0:2376
     privileged: true
     environment:
       DOCKER_DRIVER: overlay2
+    ports:
+      - 2376:2375
