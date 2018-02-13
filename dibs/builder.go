@@ -7,20 +7,19 @@ import (
 )
 
 type builder struct {
-	proxy          *httputil.ReverseProxy
-	buildResources string
+	proxy           *httputil.ReverseProxy
+	buildResources  string
+	openConnections int32
+	dedicatedTo     clientID
+	lastestUse      int64
 }
 
 func (b *builder) build(t tag, w http.ResponseWriter, r *http.Request) {
-
 	// add resource limit to build
 	r.URL.RawQuery += b.buildResources
-
-	// build images in free slot
 	log.Printf("building image: %s\n", t)
 	b.proxy.ServeHTTP(w, r)
 	log.Printf("finished building image: %s\n", t)
-
 }
 
 func (b *builder) forward(w http.ResponseWriter, r *http.Request) {

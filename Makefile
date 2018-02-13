@@ -1,7 +1,7 @@
 
 .PHONY: up
 up:
-	docker-compose up --build
+	docker-compose up --build --scale worker=2
 
 .PHONY: down
 down:

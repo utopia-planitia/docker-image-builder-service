@@ -11,9 +11,12 @@ import (
 	"sync"
 )
 
-type tag string
-
 var buildPath *regexp.Regexp
+
+type scheduler struct {
+	builders []*builder
+	mutex    *sync.Mutex
+}
 
 func init() {
 	b, err := regexp.Compile("^/[^/]*/build")
@@ -23,6 +26,7 @@ func init() {
 	buildPath = b
 }
 
+// NewScheduler creates a new image builds scheduling http server
 func NewScheduler(endpoints []*url.URL, cpu, memory *int64, addr *string) *http.Server {
 
 	builders := make([]*builder, len(endpoints))
@@ -35,13 +39,13 @@ func NewScheduler(endpoints []*url.URL, cpu, memory *int64, addr *string) *http.
 		}
 	}
 
-	pool := &pool{
-		freeBuilders: builders,
-		mutex:        &sync.Mutex{},
+	s := &scheduler{
+		builders: builders,
+		mutex:    &sync.Mutex{},
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", pool.Handle)
+	mux.HandleFunc("/", s.Handle)
 
 	return &http.Server{
 		Addr:    *addr,
@@ -50,7 +54,7 @@ func NewScheduler(endpoints []*url.URL, cpu, memory *int64, addr *string) *http.
 }
 
 // Handle processes http requests
-func (p *pool) Handle(w http.ResponseWriter, r *http.Request) {
+func (s *scheduler) Handle(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("requested path: %s\n", r.URL.Path)
 
@@ -60,9 +64,19 @@ func (p *pool) Handle(w http.ResponseWriter, r *http.Request) {
 		t = tag(ts[0])
 	}
 
+	ip, err := parseClientIP(r)
+	if err != nil {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		w.Write([]byte(err.Error()))
+		log.Printf("%s\n", err)
+		return
+	}
+
 	log.Printf("queued image: %s\n", t)
-	b := p.selectBuilder(t)
-	defer p.recycleBuilder(b)
+
+	c := clientID(ip)
+	b := s.selectBuilder(t, c)
+	defer b.Close()
 
 	if buildPath.MatchString(r.URL.Path) {
 		b.build(t, w, r)

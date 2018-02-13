@@ -21,7 +21,7 @@ func main() {
 	addr := flag.String("address", ":2375", "default server address, ':2375'")
 	cpu := flag.Int64("cpu", 1000, "cpu milliseconds used per second per build")
 	memory := flag.Int64("memory", 2147483648, "memory used per build in Byte")
-	target := flag.String("workers", "http://worker_1:2375", "redirect urls, 'http://worker_1:2375,...'")
+	target := flag.String("workers", "http://worker_1:2375,http://worker_2:2375", "redirect urls, 'http://worker_1:2375,...'")
 
 	flag.Parse()
 

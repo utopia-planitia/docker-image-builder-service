@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: docker/scheduler/Dockerfile
+    command:
+      - --workers=http://worker_1:2375,http://worker_2:2375
     links:
       - worker
     ports:
@@ -14,5 +16,3 @@ services:
     privileged: true
     environment:
       DOCKER_DRIVER: overlay2
-    ports:
-      - 2376:2375
