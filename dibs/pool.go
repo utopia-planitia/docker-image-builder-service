@@ -10,6 +10,8 @@ import (
 type tag string
 type clientID string
 
+const reservation = 10 * time.Second
+
 func (s *scheduler) reselect(t tag, c clientID) (*builder, bool) {
 	for _, b := range s.builders {
 		if b.dedicatedTo != c {
@@ -45,7 +47,7 @@ func scheduleable(b *builder) bool {
 	if b.dedicatedTo == "" {
 		return true
 	}
-	if b.openConnections == 0 && b.lastestUse < time.Now().Unix()-10 {
+	if b.openConnections == 0 && b.lastestUse <= time.Now().Add(reservation).Unix() {
 		return true
 	}
 	return false
@@ -59,7 +61,7 @@ func (s *scheduler) recycle(b *builder) {
 		return
 	}
 	go func(b *builder, t int64) {
-		time.Sleep(11000 * time.Millisecond)
+		time.Sleep(reservation)
 		if b.lastestUse != t {
 			return
 		}

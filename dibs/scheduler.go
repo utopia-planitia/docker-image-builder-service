@@ -74,7 +74,6 @@ func (s *scheduler) Handle(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s\n", err)
 		return
 	}
-
 	c := clientID(ip)
 
 	b := s.selectWorker(t, c)
