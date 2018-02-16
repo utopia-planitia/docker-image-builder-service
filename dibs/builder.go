@@ -4,9 +4,21 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"regexp"
 )
 
+var buildPath *regexp.Regexp
+
+func init() {
+	b, err := regexp.Compile("^/[^/]*/build")
+	if err != nil {
+		log.Fatalf("failed to prepare pattern matching: %s\n", err)
+	}
+	buildPath = b
+}
+
 type builder struct {
+	name            string
 	proxy           *httputil.ReverseProxy
 	buildResources  string
 	openConnections int32
@@ -14,14 +26,11 @@ type builder struct {
 	lastestUse      int64
 }
 
-func (b *builder) build(t tag, w http.ResponseWriter, r *http.Request) {
-	// add resource limit to build
-	r.URL.RawQuery += b.buildResources
-	log.Printf("building image: %s\n", t)
-	b.proxy.ServeHTTP(w, r)
-	log.Printf("finished building image: %s\n", t)
-}
+func (b *builder) handle(t tag, w http.ResponseWriter, r *http.Request) {
 
-func (b *builder) forward(w http.ResponseWriter, r *http.Request) {
+	if buildPath.MatchString(r.URL.Path) {
+		r.URL.RawQuery += b.buildResources
+	}
+
 	b.proxy.ServeHTTP(w, r)
 }

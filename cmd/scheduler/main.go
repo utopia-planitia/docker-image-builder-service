@@ -28,6 +28,7 @@ func main() {
 	log.Printf("server will run on: %s\n", *addr)
 	log.Printf("use %v millisecounds of cpu per build\n", *cpu)
 	log.Printf("use %v bytes memory per build\n", *memory)
+	log.Printf("use %v as workers\n", *target)
 
 	targets := strings.Split(*target, ",")
 	endpoints := make([]*url.URL, len(targets))

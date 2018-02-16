@@ -1,6 +1,8 @@
 package dibs
 
 import (
+	"log"
+	"math/rand"
 	"sync/atomic"
 	"time"
 )
@@ -8,44 +10,86 @@ import (
 type tag string
 type clientID string
 
-func (s *scheduler) selectBuilder(t tag, c clientID) *builder {
-
-	defer s.mutex.Unlock()
-	for {
-		s.mutex.Lock()
-
-		for _, b := range s.builders {
-			if b.dedicatedTo == c {
-				atomic.AddInt32(&b.openConnections, 1)
-				b.lastestUse = time.Now().Unix()
-				return b
-			}
+func (s *scheduler) reselect(t tag, c clientID) (*builder, bool) {
+	for _, b := range s.builders {
+		if b.dedicatedTo != c {
+			continue
 		}
-
-		for _, b := range s.builders {
-			if b.dedicatedTo == "" {
-				b.dedicatedTo = c
-				b.lastestUse = time.Now().Unix()
-				atomic.AddInt32(&b.openConnections, 1)
-				return b
-			}
+		atomic.AddInt32(&b.openConnections, 1)
+		if b.dedicatedTo != c {
+			atomic.AddInt32(&b.openConnections, -1)
+			continue
 		}
-
-		for _, b := range s.builders {
-			if b.openConnections == 0 && b.lastestUse < time.Now().Unix()-10 {
-				b.dedicatedTo = c
-				b.lastestUse = time.Now().Unix()
-				atomic.AddInt32(&b.openConnections, 1)
-				return b
-			}
-		}
-
-		s.mutex.Unlock()
-		time.Sleep(time.Second)
+		b.lastestUse = time.Now().Unix()
+		return b, true
 	}
+	return nil, false
 }
 
-func (b *builder) Close() {
-	b.lastestUse = time.Now().Unix()
-	atomic.AddInt32(&b.openConnections, -1)
+func (s *scheduler) findScheduleable(t tag, c clientID) (*builder, bool) {
+	r := rand.New(rand.NewSource(time.Now().Unix()))
+	for _, i := range r.Perm(len(s.builders)) {
+		b := s.builders[i]
+		if !scheduleable(b) {
+			continue
+		}
+		b.dedicatedTo = c
+		b.lastestUse = time.Now().Unix()
+		atomic.AddInt32(&b.openConnections, 1)
+		return b, true
+	}
+	return nil, false
+}
+
+func scheduleable(b *builder) bool {
+	if b.dedicatedTo == "" {
+		return true
+	}
+	if b.openConnections == 0 && b.lastestUse < time.Now().Unix()-10 {
+		return true
+	}
+	return false
+}
+
+func (s *scheduler) recycle(b *builder) {
+	t := time.Now().Unix()
+	b.lastestUse = t
+	o := atomic.AddInt32(&b.openConnections, -1)
+	if o != 0 {
+		return
+	}
+	go func(b *builder, t int64) {
+		time.Sleep(11000 * time.Millisecond)
+		if b.lastestUse != t {
+			return
+		}
+		log.Printf("recycled worker %s\n", b.name)
+		s.mutex.Lock()
+		s.cond.Broadcast()
+		s.mutex.Unlock()
+	}(b, t)
+}
+
+func (s *scheduler) selectWorker(t tag, c clientID) *builder {
+
+	for {
+
+		b, found := s.reselect(t, c)
+		if found {
+			log.Printf("reselected worker %s for client %s (tag %s)\n", b.name, c, t)
+			return b
+		}
+
+		s.mutex.Lock()
+
+		b, found = s.findScheduleable(t, c)
+		if found {
+			log.Printf("scheduled worker %s for client %s (tag %s)\n", b.name, c, t)
+			s.mutex.Unlock()
+			return b
+		}
+
+		log.Printf("waiting for worker to become free\n")
+		s.cond.Wait()
+	}
 }

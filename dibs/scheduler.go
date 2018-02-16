@@ -1,29 +1,26 @@
 package dibs
 
 import (
-	"errors"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"regexp"
 	"strconv"
 	"sync"
 )
 
-var buildPath *regexp.Regexp
-
 type scheduler struct {
 	builders []*builder
 	mutex    *sync.Mutex
+	cond     *sync.Cond
+	queue    chan build
 }
 
-func init() {
-	b, err := regexp.Compile("^/[^/]*/build")
-	if err != nil {
-		log.Fatalf("failed to prepare pattern matching: %s\n", err)
-	}
-	buildPath = b
+type build struct {
+	w        http.ResponseWriter
+	r        *http.Request
+	tag      tag
+	clientID clientID
 }
 
 // NewScheduler creates a new image builds scheduling http server
@@ -34,14 +31,20 @@ func NewScheduler(endpoints []*url.URL, cpu, memory *int64, addr *string) *http.
 	for i, e := range endpoints {
 		r := httputil.NewSingleHostReverseProxy(e)
 		builders[i] = &builder{
+			name:           e.String(),
 			proxy:          r,
 			buildResources: "&cpuquota=" + strconv.FormatInt(*cpu, 10) + "&memory=" + strconv.FormatInt(*memory, 10),
 		}
 	}
 
+	m := &sync.Mutex{}
+	c := sync.NewCond(m)
+
 	s := &scheduler{
 		builders: builders,
-		mutex:    &sync.Mutex{},
+		mutex:    m,
+		cond:     c,
+		queue:    make(chan build),
 	}
 
 	mux := http.NewServeMux()
@@ -72,24 +75,9 @@ func (s *scheduler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("queued image: %s\n", t)
-
 	c := clientID(ip)
-	b := s.selectBuilder(t, c)
-	defer b.Close()
 
-	if buildPath.MatchString(r.URL.Path) {
-		b.build(t, w, r)
-		return
-	}
-
-	b.forward(w, r)
-}
-
-func parseTag(v url.Values) (tag, error) {
-	t, ok := v["t"]
-	if !ok {
-		return tag(""), errors.New("missing parameter t")
-	}
-	return tag(t[0]), nil
+	b := s.selectWorker(t, c)
+	defer s.recycle(b)
+	b.handle(t, w, r)
 }
