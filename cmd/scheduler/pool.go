@@ -1,4 +1,4 @@
-package dibs
+package main
 
 import (
 	"log"

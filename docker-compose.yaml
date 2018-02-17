@@ -6,12 +6,34 @@ services:
       context: .
       dockerfile: docker/scheduler/Dockerfile
     command:
-      - --workers=http://worker_1:2375,http://worker_2:2375
+      - --workers=http://builder_1:2375,http://builder_2:2375
     links:
-      - worker
+      - builder_1
+      - builder_2
     ports:
       - 2375:2375
-  worker:
+  builder_1:
+    build:
+      context: .
+      dockerfile: docker/builder/Dockerfile
+    command:
+      - --docker=http://docker_1:2375
+    links:
+      - docker_1
+  builder_2:
+    build:
+      context: .
+      dockerfile: docker/builder/Dockerfile
+    command:
+      - --docker=http://docker_2:2375
+    links:
+      - docker_2
+  docker_1:
+    image: docker:17.11.0-ce-dind
+    privileged: true
+    environment:
+      DOCKER_DRIVER: overlay2
+  docker_2:
     image: docker:17.11.0-ce-dind
     privileged: true
     environment:

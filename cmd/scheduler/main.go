@@ -10,8 +10,6 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
-
-	"github.com/damoon/docker-image-builder-service/dibs"
 )
 
 func main() {
@@ -39,7 +37,7 @@ func main() {
 		}
 	}
 
-	server := dibs.NewScheduler(endpoints, cpu, memory, addr)
+	server := newScheduler(endpoints, cpu, memory, addr)
 
 	// wait for an exit signal
 	stop := make(chan os.Signal, 2)

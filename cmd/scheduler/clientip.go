@@ -1,4 +1,4 @@
-package dibs
+package main
 
 // thanks to https://husobee.github.io/golang/ip-address/2015/12/17/remote-ip-go.html
 

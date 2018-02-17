@@ -1,4 +1,4 @@
-package dibs
+package main
 
 import (
 	"log"
@@ -23,8 +23,7 @@ type build struct {
 	clientID clientID
 }
 
-// NewScheduler creates a new image builds scheduling http server
-func NewScheduler(endpoints []*url.URL, cpu, memory *int64, addr *string) *http.Server {
+func newScheduler(endpoints []*url.URL, cpu, memory *int64, addr *string) *http.Server {
 
 	builders := make([]*builder, len(endpoints))
 
@@ -48,7 +47,7 @@ func NewScheduler(endpoints []*url.URL, cpu, memory *int64, addr *string) *http.
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", s.Handle)
+	mux.HandleFunc("/", s.handle)
 
 	return &http.Server{
 		Addr:    *addr,
@@ -56,8 +55,7 @@ func NewScheduler(endpoints []*url.URL, cpu, memory *int64, addr *string) *http.
 	}
 }
 
-// Handle processes http requests
-func (s *scheduler) Handle(w http.ResponseWriter, r *http.Request) {
+func (s *scheduler) handle(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("requested path: %s\n", r.URL.Path)
 
