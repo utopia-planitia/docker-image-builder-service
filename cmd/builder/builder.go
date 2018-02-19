@@ -50,7 +50,7 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 	if t != nil {
 		log.Printf("building tag: %s\n", t)
 		f = cachedLatestFilename(t)
-		load(f)
+		load(t, f)
 	}
 
 	cf, err := parseCachefrom(r)
@@ -60,7 +60,7 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 	if cf != nil {
 		log.Printf("cachefrom: %s\n", cf)
 		for _, e := range cf {
-			load(cachedBranchFilename(t, e))
+			load(t, cachedBranchFilename(t, e))
 		}
 	}
 	values := r.URL.Query()
@@ -77,9 +77,9 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func load(f filename) {
+func load(t *dibs.Tag, f filename) {
 	log.Printf("loading cached file %s", f)
-	output, err := exec.Command("load", string(f)).CombinedOutput()
+	output, err := exec.Command("load", t.String(), string(f)).CombinedOutput()
 	if err != nil {
 		log.Printf("loading cached file %s failed: %v: %v", f, err, string(output))
 	}

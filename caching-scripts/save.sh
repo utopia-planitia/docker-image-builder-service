@@ -13,4 +13,8 @@ if [ $? != 0 ]; then
   mc mb cache/$CACHE_BUCKET
 fi
 
+set -e
+DATE=$(date +%s)
+HASH=$(docker history -q $1 | md5sum)
+echo "$META\n$HASH" | mc pipe cache/$CACHE_BUCKET/$2.meta
 docker save $1 $(docker history -q $1 | grep -v missing) | mc pipe cache/$CACHE_BUCKET/$2
