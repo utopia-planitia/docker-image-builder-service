@@ -1,10 +1,10 @@
 version: '3.0'
 
 services:
-  scheduler:
+  dispatcher:
     build:
       context: .
-      dockerfile: docker/scheduler/Dockerfile
+      dockerfile: docker/dispatcher/Dockerfile
     command:
       - --workers=http://builder_1:2375,http://builder_2:2375
     links:
@@ -71,7 +71,7 @@ services:
       - -c
       - "sleep 9999d"
     environment:
-      DOCKER_HOST: tcp://scheduler:2375
+      DOCKER_HOST: tcp://dispatcher:2375
       CACHE_ENDPOINT: http://minio:9000/
       CACHE_BUCKET: test
       CACHE_ACCESS_KEY: 8Q9U4RBHKKB6HU70SRZ1
@@ -80,7 +80,7 @@ services:
     volumes:
       - .:/project
     links:
-      - scheduler
+      - dispatcher
       - builder_1
       - builder_2
       - docker_1

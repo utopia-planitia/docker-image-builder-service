@@ -13,7 +13,7 @@ type clientID string
 
 const reservation = 10 * time.Second
 
-func (s *scheduler) reselect(t *dibs.Tag, c clientID) (*builder, bool) {
+func (s *dispatcher) reselect(t *dibs.Tag, c clientID) (*builder, bool) {
 	for _, b := range s.builders {
 		if b.dedicatedTo != c {
 			continue
@@ -29,7 +29,7 @@ func (s *scheduler) reselect(t *dibs.Tag, c clientID) (*builder, bool) {
 	return nil, false
 }
 
-func (s *scheduler) findScheduleable(t *dibs.Tag, c clientID) (*builder, bool) {
+func (s *dispatcher) findScheduleable(t *dibs.Tag, c clientID) (*builder, bool) {
 	r := rand.New(rand.NewSource(time.Now().Unix()))
 	for _, i := range r.Perm(len(s.builders)) {
 		b := s.builders[i]
@@ -54,7 +54,7 @@ func scheduleable(b *builder) bool {
 	return false
 }
 
-func (s *scheduler) recycle(b *builder) {
+func (s *dispatcher) recycle(b *builder) {
 	t := time.Now().Unix()
 	b.lastestUse = t
 	o := atomic.AddInt32(&b.openConnections, -1)
@@ -73,7 +73,7 @@ func (s *scheduler) recycle(b *builder) {
 	}(b, t)
 }
 
-func (s *scheduler) selectWorker(t *dibs.Tag, c clientID) *builder {
+func (s *dispatcher) selectWorker(t *dibs.Tag, c clientID) *builder {
 
 	for {
 

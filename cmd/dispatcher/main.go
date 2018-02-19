@@ -37,7 +37,7 @@ func main() {
 		}
 	}
 
-	server := newScheduler(endpoints, cpu, memory, addr)
+	server := newDispatcher(endpoints, cpu, memory, addr)
 
 	// wait for an exit signal
 	stop := make(chan os.Signal, 2)

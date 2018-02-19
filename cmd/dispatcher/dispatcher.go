@@ -11,7 +11,7 @@ import (
 	"github.com/damoon/docker-image-builder-service/dibs"
 )
 
-type scheduler struct {
+type dispatcher struct {
 	builders []*builder
 	mutex    *sync.Mutex
 	cond     *sync.Cond
@@ -25,7 +25,7 @@ type build struct {
 	clientID clientID
 }
 
-func newScheduler(endpoints []*url.URL, cpu, memory *int64, addr *string) *http.Server {
+func newDispatcher(endpoints []*url.URL, cpu, memory *int64, addr *string) *http.Server {
 
 	builders := make([]*builder, len(endpoints))
 
@@ -42,7 +42,7 @@ func newScheduler(endpoints []*url.URL, cpu, memory *int64, addr *string) *http.
 	m := &sync.Mutex{}
 	c := sync.NewCond(m)
 
-	s := &scheduler{
+	s := &dispatcher{
 		builders: builders,
 		mutex:    m,
 		cond:     c,
@@ -58,7 +58,7 @@ func newScheduler(endpoints []*url.URL, cpu, memory *int64, addr *string) *http.
 	}
 }
 
-func (s *scheduler) handle(w http.ResponseWriter, r *http.Request) {
+func (s *dispatcher) handle(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("requested path: %s\n", r.URL.Path)
 
