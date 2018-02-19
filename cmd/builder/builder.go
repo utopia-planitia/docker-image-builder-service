@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -50,7 +53,7 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 		load(f)
 	}
 
-	cf, err := dibs.ParseCachefrom(r)
+	cf, err := parseCachefrom(r)
 	if err != nil {
 		log.Printf("cachefrom preparation failed: %s\n", err)
 	}
@@ -98,4 +101,23 @@ func cachedLatestFilename(t *dibs.Tag) filename {
 
 func cachedBranchFilename(t *dibs.Tag, bn string) filename {
 	return filename(strings.Replace(t.Image, "/", "~", -1) + ":" + bn)
+}
+
+func parseCachefrom(r *http.Request) ([]string, error) {
+	cf, ok := r.URL.Query()["cachefrom"]
+	if !ok {
+		return nil, errors.New("parameter cachefrom not set")
+	}
+	if len(cf) != 1 {
+		return nil, errors.New("parameter cachefrom not set exactly once")
+	}
+
+	sr := strings.NewReader(cf[0])
+	j := json.NewDecoder(sr)
+	var l []string
+	err := j.Decode(&l)
+	if err != nil {
+		return nil, fmt.Errorf("failed to json decode cachefrom: %s", err)
+	}
+	return l, nil
 }

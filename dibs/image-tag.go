@@ -1,9 +1,7 @@
 package dibs
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 )
@@ -15,26 +13,6 @@ type Tag struct {
 
 func (t Tag) String() string {
 	return t.Image + ":" + t.Version
-}
-
-// ParseCachefrom creates a list of cache from Tags from a request
-func ParseCachefrom(r *http.Request) ([]string, error) {
-	cf, ok := r.URL.Query()["cachefrom"]
-	if !ok {
-		return nil, errors.New("parameter cachefrom not set")
-	}
-	if len(cf) != 1 {
-		return nil, errors.New("parameter cachefrom not set exactly once")
-	}
-
-	sr := strings.NewReader(cf[0])
-	j := json.NewDecoder(sr)
-	var l []string
-	err := j.Decode(&l)
-	if err != nil {
-		return nil, fmt.Errorf("failed to json decode cachefrom: %s", err)
-	}
-	return l, nil
 }
 
 // ParseTag parses a Build Tag from a request
