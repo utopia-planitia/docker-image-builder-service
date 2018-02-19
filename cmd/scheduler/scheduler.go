@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"strconv"
 	"sync"
+
+	"github.com/damoon/docker-image-builder-service/dibs"
 )
 
 type scheduler struct {
@@ -19,7 +21,7 @@ type scheduler struct {
 type build struct {
 	w        http.ResponseWriter
 	r        *http.Request
-	tag      tag
+	tag      dibs.Tag
 	clientID clientID
 }
 
@@ -59,11 +61,7 @@ func (s *scheduler) handle(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("requested path: %s\n", r.URL.Path)
 
-	var t tag
-	ts, ok := r.URL.Query()["t"]
-	if ok {
-		t = tag(ts[0])
-	}
+	t, err := dibs.ParseTag(r)
 
 	ip, err := parseClientIP(r)
 	if err != nil {

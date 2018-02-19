@@ -18,16 +18,30 @@ services:
       dockerfile: docker/builder/Dockerfile
     command:
       - --docker=http://docker_1:2375
+    environment:
+      DOCKER_HOST: tcp://docker_1:2375
+      CACHE_ENDPOINT: http://minio:9000/
+      CACHE_BUCKET: test
+      CACHE_ACCESS_KEY: 8Q9U4RBHKKB6HU70SRZ1
+      CACHE_SECRET_KEY: oxxT2iqBlW6lgaDVe8ll6mP8z/OSVIUnn9cB4+Q0
     links:
       - docker_1
+      - minio
   builder_2:
     build:
       context: .
       dockerfile: docker/builder/Dockerfile
     command:
       - --docker=http://docker_2:2375
+    environment:
+      DOCKER_HOST: tcp://docker_2:2375
+      CACHE_ENDPOINT: http://minio:9000/
+      CACHE_BUCKET: test
+      CACHE_ACCESS_KEY: 8Q9U4RBHKKB6HU70SRZ1
+      CACHE_SECRET_KEY: oxxT2iqBlW6lgaDVe8ll6mP8z/OSVIUnn9cB4+Q0
     links:
       - docker_2
+      - minio
   docker_1:
     image: docker:17.11.0-ce-dind
     privileged: true
@@ -38,3 +52,37 @@ services:
     privileged: true
     environment:
       DOCKER_DRIVER: overlay2
+  minio:
+    image: minio/minio:RELEASE.2018-02-09T22-40-05Z
+    command:
+      - server
+      - /data
+    environment:
+      MINIO_ACCESS_KEY: 8Q9U4RBHKKB6HU70SRZ1
+      MINIO_SECRET_KEY: oxxT2iqBlW6lgaDVe8ll6mP8z/OSVIUnn9cB4+Q0
+    ports:
+      - 9000:9000
+  dev-tools:
+    build:
+      context: .
+      dockerfile: docker/dev-tools/Dockerfile
+    entrypoint:
+      - sh
+      - -c
+      - "sleep 9999d"
+    environment:
+      DOCKER_HOST: tcp://scheduler:2375
+      CACHE_ENDPOINT: http://minio:9000/
+      CACHE_BUCKET: test
+      CACHE_ACCESS_KEY: 8Q9U4RBHKKB6HU70SRZ1
+      CACHE_SECRET_KEY: oxxT2iqBlW6lgaDVe8ll6mP8z/OSVIUnn9cB4+Q0
+    working_dir: /project
+    volumes:
+      - .:/project
+    links:
+      - scheduler
+      - builder_1
+      - builder_2
+      - docker_1
+      - docker_2
+      - minio

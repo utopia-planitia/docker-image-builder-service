@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"regexp"
+
+	"github.com/damoon/docker-image-builder-service/dibs"
 )
 
 var buildPath *regexp.Regexp
@@ -26,7 +28,7 @@ type builder struct {
 	lastestUse      int64
 }
 
-func (b *builder) handle(t tag, w http.ResponseWriter, r *http.Request) {
+func (b *builder) handle(t *dibs.Tag, w http.ResponseWriter, r *http.Request) {
 
 	if buildPath.MatchString(r.URL.Path) {
 		r.URL.RawQuery += b.buildResources

@@ -5,14 +5,15 @@ import (
 	"math/rand"
 	"sync/atomic"
 	"time"
+
+	"github.com/damoon/docker-image-builder-service/dibs"
 )
 
-type tag string
 type clientID string
 
 const reservation = 10 * time.Second
 
-func (s *scheduler) reselect(t tag, c clientID) (*builder, bool) {
+func (s *scheduler) reselect(t *dibs.Tag, c clientID) (*builder, bool) {
 	for _, b := range s.builders {
 		if b.dedicatedTo != c {
 			continue
@@ -28,7 +29,7 @@ func (s *scheduler) reselect(t tag, c clientID) (*builder, bool) {
 	return nil, false
 }
 
-func (s *scheduler) findScheduleable(t tag, c clientID) (*builder, bool) {
+func (s *scheduler) findScheduleable(t *dibs.Tag, c clientID) (*builder, bool) {
 	r := rand.New(rand.NewSource(time.Now().Unix()))
 	for _, i := range r.Perm(len(s.builders)) {
 		b := s.builders[i]
@@ -72,7 +73,7 @@ func (s *scheduler) recycle(b *builder) {
 	}(b, t)
 }
 
-func (s *scheduler) selectWorker(t tag, c clientID) *builder {
+func (s *scheduler) selectWorker(t *dibs.Tag, c clientID) *builder {
 
 	for {
 
