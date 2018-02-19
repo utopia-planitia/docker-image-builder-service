@@ -35,25 +35,44 @@ func newBuilder(endpoint *url.URL, addr *string) *http.Server {
 
 func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 
+	log.Printf("url: %s\n", r.URL.String())
+
 	log.Printf("requested path: %s\n", r.URL.Path)
 
 	t, err := dibs.ParseTag(r)
 	if err != nil {
-		log.Printf("cache preparation failed: %s\n", err)
-		b.docker.ServeHTTP(w, r)
-		return
+		log.Printf("tag cache preparation failed: %s\n", err)
+	}
+	var f filename
+	if t != nil {
+		log.Printf("building tag: %s\n", t)
+		f = cachedLatestFilename(t)
+		load(f)
 	}
 
-	log.Printf("building tag: %s\n", t)
-
-	f := cachedFilename(t)
-
-	load(f)
+	cf, err := dibs.ParseCachefrom(r)
+	if err != nil {
+		log.Printf("cachefrom preparation failed: %s\n", err)
+	}
+	if cf != nil {
+		log.Printf("cachefrom: %s\n", cf)
+		for _, e := range cf {
+			load(cachedBranchFilename(t, e))
+		}
+	}
+	values := r.URL.Query()
+	values.Del("cachefrom")
+	r.URL.RawQuery = values.Encode()
 
 	b.docker.ServeHTTP(w, r)
 
-	if t.Version == "latest" {
+	if t != nil && t.Version == "latest" {
 		save(t, f)
+	}
+	if cf != nil {
+		for _, e := range cf {
+			save(t, cachedBranchFilename(t, e))
+		}
 	}
 }
 
@@ -73,6 +92,10 @@ func save(t *dibs.Tag, f filename) {
 	}
 }
 
-func cachedFilename(t *dibs.Tag) filename {
-	return filename(strings.Replace(t.Image, "/", "~", -1) + ":" + t.Version)
+func cachedLatestFilename(t *dibs.Tag) filename {
+	return filename(strings.Replace(t.Image, "/", "~", -1) + ":latest")
+}
+
+func cachedBranchFilename(t *dibs.Tag, bn string) filename {
+	return filename(strings.Replace(t.Image, "/", "~", -1) + ":" + bn)
 }

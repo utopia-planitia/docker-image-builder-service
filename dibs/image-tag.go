@@ -1,6 +1,7 @@
 package dibs
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -12,36 +13,55 @@ type Tag struct {
 	Image, Version string
 }
 
-// ParseTag creates a Tag from a request
-func ParseTag(r *http.Request) (*Tag, error) {
-	s, err := stringFromRequest(r)
-	if err != nil {
-		return &Tag{}, fmt.Errorf("failed to parse tag: %s", err)
+func (t Tag) String() string {
+	return t.Image + ":" + t.Version
+}
+
+// ParseCachefrom creates a list of cache from Tags from a request
+func ParseCachefrom(r *http.Request) ([]string, error) {
+	cf, ok := r.URL.Query()["cachefrom"]
+	if !ok {
+		return nil, errors.New("parameter cachefrom not set")
 	}
-	ss := strings.Split(s, ":")
-	if len(ss) == 2 {
+	if len(cf) != 1 {
+		return nil, errors.New("parameter cachefrom not set exactly once")
+	}
+
+	sr := strings.NewReader(cf[0])
+	j := json.NewDecoder(sr)
+	var l []string
+	err := j.Decode(&l)
+	if err != nil {
+		return nil, fmt.Errorf("failed to json decode cachefrom: %s", err)
+	}
+	return l, nil
+}
+
+// ParseTag parses a Build Tag from a request
+func ParseTag(r *http.Request) (*Tag, error) {
+	t, ok := r.URL.Query()["t"]
+	if !ok {
+		return &Tag{}, errors.New("parameter t not set")
+	}
+	if len(t) != 1 {
+		return &Tag{}, errors.New("parameter t not set exactly once")
+	}
+	return newTag(t[0])
+}
+
+func newTag(t string) (*Tag, error) {
+	s := strings.Split(t, ":")
+	if len(s) == 2 {
 		return &Tag{
-			Image:   ss[0],
-			Version: ss[1],
+			Image:   s[0],
+			Version: s[1],
 		}, nil
 	}
-	if len(ss) == 1 {
+	if len(s) == 1 {
 		return &Tag{
-			Image:   ss[0],
+			Image:   s[0],
 			Version: "latest",
 		}, nil
 	}
-	return &Tag{}, errors.New("parameter t is malformed")
-}
-
-func stringFromRequest(r *http.Request) (string, error) {
-	ts, ok := r.URL.Query()["t"]
-	if !ok {
-		return "", errors.New("parameter t not set")
-	}
-	return ts[0], nil
-}
-
-func (t Tag) String() string {
-	return t.Image + ":" + t.Version
+	return &Tag{}, errors.New("tag is malformed")
 }

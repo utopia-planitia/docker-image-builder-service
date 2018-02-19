@@ -2,6 +2,7 @@
 .PHONY: up
 up:
 	docker-compose up --build -d
+	$(MAKE) logs
 
 .PHONY: down
 down:
