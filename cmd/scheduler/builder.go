@@ -22,7 +22,8 @@ func init() {
 type builder struct {
 	name            string
 	proxy           *httputil.ReverseProxy
-	buildResources  string
+	cpuquota        string
+	memory          string
 	openConnections int32
 	dedicatedTo     clientID
 	lastestUse      int64
@@ -31,7 +32,10 @@ type builder struct {
 func (b *builder) handle(t *dibs.Tag, w http.ResponseWriter, r *http.Request) {
 
 	if buildPath.MatchString(r.URL.Path) {
-		r.URL.RawQuery += b.buildResources
+		values := r.URL.Query()
+		values.Set("cpuquota", b.cpuquota)
+		values.Set("memory", b.memory)
+		r.URL.RawQuery = values.Encode()
 	}
 
 	b.proxy.ServeHTTP(w, r)

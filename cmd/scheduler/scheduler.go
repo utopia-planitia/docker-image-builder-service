@@ -32,9 +32,10 @@ func newScheduler(endpoints []*url.URL, cpu, memory *int64, addr *string) *http.
 	for i, e := range endpoints {
 		r := httputil.NewSingleHostReverseProxy(e)
 		builders[i] = &builder{
-			name:           e.String(),
-			proxy:          r,
-			buildResources: "&cpuquota=" + strconv.FormatInt(*cpu, 10) + "&memory=" + strconv.FormatInt(*memory, 10),
+			name:     e.String(),
+			proxy:    r,
+			cpuquota: strconv.FormatInt(*cpu, 10),
+			memory:   strconv.FormatInt(*memory, 10),
 		}
 	}
 
