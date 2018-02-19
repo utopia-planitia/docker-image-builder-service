@@ -72,26 +72,24 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 	if t != nil && t.Version == "latest" {
 		save(t, f)
 	}
-	if cf != nil {
-		for _, e := range cf {
-			save(t, cachedBranchFilename(t, e))
-		}
+	for _, e := range cf {
+		save(t, cachedBranchFilename(t, e))
 	}
 }
 
 func load(f filename) {
-	log.Printf("loading cached file %s", string(f))
+	log.Printf("loading cached file %s", f)
 	output, err := exec.Command("load", string(f)).CombinedOutput()
 	if err != nil {
-		log.Printf("loading cached file %s failed: %v: %v", string(f), err, string(output))
+		log.Printf("loading cached file %s failed: %v: %v", f, err, string(output))
 	}
 }
 
 func save(t *dibs.Tag, f filename) {
-	log.Printf("saving image %s to file %s", t.String(), string(f))
+	log.Printf("saving image %s to file %s", t, f)
 	output, err := exec.Command("save", t.String(), string(f)).CombinedOutput()
 	if err != nil {
-		log.Printf("saving image %s to file %s failed: %v: %v", t.String(), string(f), err, string(output))
+		log.Printf("saving image %s to file %s failed: %v: %v", t, f, err, string(output))
 	}
 }
 

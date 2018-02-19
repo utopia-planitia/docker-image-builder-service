@@ -5,15 +5,13 @@ import (
 	"math/rand"
 	"sync/atomic"
 	"time"
-
-	"github.com/damoon/docker-image-builder-service/dibs"
 )
 
 type clientID string
 
 const reservation = 10 * time.Second
 
-func (s *dispatcher) reselect(t *dibs.Tag, c clientID) (*builder, bool) {
+func (s *dispatcher) reselect(c clientID) (*builder, bool) {
 	for _, b := range s.builders {
 		if b.dedicatedTo != c {
 			continue
@@ -29,7 +27,7 @@ func (s *dispatcher) reselect(t *dibs.Tag, c clientID) (*builder, bool) {
 	return nil, false
 }
 
-func (s *dispatcher) findScheduleable(t *dibs.Tag, c clientID) (*builder, bool) {
+func (s *dispatcher) findScheduleable(c clientID) (*builder, bool) {
 	r := rand.New(rand.NewSource(time.Now().Unix()))
 	for _, i := range r.Perm(len(s.builders)) {
 		b := s.builders[i]
@@ -73,21 +71,21 @@ func (s *dispatcher) recycle(b *builder) {
 	}(b, t)
 }
 
-func (s *dispatcher) selectWorker(t *dibs.Tag, c clientID) *builder {
+func (s *dispatcher) selectWorker(c clientID) *builder {
 
 	for {
 
-		b, found := s.reselect(t, c)
+		b, found := s.reselect(c)
 		if found {
-			log.Printf("reselected worker %s for client %s (tag %s)\n", b.name, c, t)
+			log.Printf("reselected worker %s for client %s\n", b.name, c)
 			return b
 		}
 
 		s.mutex.Lock()
 
-		b, found = s.findScheduleable(t, c)
+		b, found = s.findScheduleable(c)
 		if found {
-			log.Printf("scheduled worker %s for client %s (tag %s)\n", b.name, c, t)
+			log.Printf("scheduled worker %s for client %s\n", b.name, c)
 			s.mutex.Unlock()
 			return b
 		}
