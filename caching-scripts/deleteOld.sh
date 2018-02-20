@@ -15,3 +15,16 @@ do
       fi
   fi
 done;
+
+mc ls -I cache/$CACHE_BUCKET | while read -r line;
+do
+  createDate=`echo $line|awk {'print $1" "$2'}`
+  createDate=`date -d"${createDate:1}" +%s`
+  if [[ $createDate -lt $olderThan ]]; then 
+      echo "deleteing $line"
+      fileName=`echo $line|awk {'print $5'}`
+      if [[ $fileName != "" ]]; then
+          mc rm "cache/$CACHE_BUCKET/$fileName"
+      fi
+  fi
+done;
