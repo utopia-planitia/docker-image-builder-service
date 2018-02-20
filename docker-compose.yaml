@@ -17,6 +17,7 @@ services:
       context: .
       dockerfile: docker/builder/Dockerfile
     command:
+      - builder
       - --docker=http://docker_1:2375
     environment:
       DOCKER_HOST: tcp://docker_1:2375
@@ -32,6 +33,7 @@ services:
       context: .
       dockerfile: docker/builder/Dockerfile
     command:
+      - builder
       - --docker=http://docker_2:2375
     environment:
       DOCKER_HOST: tcp://docker_2:2375
@@ -66,7 +68,7 @@ services:
     build:
       context: .
       dockerfile: docker/dev-tools/Dockerfile
-    entrypoint:
+    command:
       - sh
       - -c
       - "sleep 9999d"

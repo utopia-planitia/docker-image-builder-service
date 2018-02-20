@@ -16,4 +16,8 @@ COPY --from=docker-client /usr/local/bin/docker /usr/bin/docker
 COPY --from=compile /go/src/github.com/damoon/docker-image-builder-service/builder /usr/bin/builder
 COPY caching-scripts/save.sh /usr/bin/save
 COPY caching-scripts/load.sh /usr/bin/load
-ENTRYPOINT ["/usr/bin/builder"]
+ENV CACHE_MAX_AGE 864000
+COPY caching-scripts/deleteOld.sh /usr/bin/deleteOld
+COPY caching-scripts/entrypoint.sh /entrypoint.sh
+ENTRYPOINT [ "/entrypoint.sh" ]
+CMD ["/usr/bin/builder"]
