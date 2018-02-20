@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strconv"
 	"sync"
+	"time"
 )
 
 type dispatcher struct {
@@ -42,8 +43,10 @@ func newDispatcher(endpoints []*url.URL, cpu, memory *int64, addr *string) *http
 	mux.HandleFunc("/", s.handle)
 
 	return &http.Server{
-		Addr:    *addr,
-		Handler: mux,
+		Addr:         *addr,
+		Handler:      mux,
+		ReadTimeout:  1800 * time.Second,
+		WriteTimeout: 1800 * time.Second,
 	}
 }
 

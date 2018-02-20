@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/damoon/docker-image-builder-service/dibs"
 )
@@ -31,8 +32,10 @@ func newBuilder(endpoint *url.URL, addr *string) *http.Server {
 	mux.HandleFunc("/", b.handle)
 
 	return &http.Server{
-		Addr:    *addr,
-		Handler: mux,
+		Addr:         *addr,
+		Handler:      mux,
+		ReadTimeout:  1800 * time.Second,
+		WriteTimeout: 1800 * time.Second,
 	}
 }
 
