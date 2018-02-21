@@ -77,6 +77,9 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 	if cf != nil {
 		log.Printf("cachefrom: %s\n", cf)
 		for _, e := range cf {
+			if e == "master" {
+				continue
+			}
 			load(t, cachedBranchFilename(t, e))
 		}
 	}
@@ -91,6 +94,9 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 		save(t, f)
 	}
 	for _, e := range cf {
+		if e == "master" {
+			continue
+		}
 		save(t, cachedBranchFilename(t, e))
 	}
 }
