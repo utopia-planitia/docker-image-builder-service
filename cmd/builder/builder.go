@@ -12,8 +12,6 @@ import (
 	"regexp"
 	"strings"
 	"time"
-
-	"github.com/damoon/docker-image-builder-service/dibs"
 )
 
 var buildPath *regexp.Regexp
@@ -60,7 +58,7 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t, err := dibs.ParseTag(r)
+	t, err := parseTag(r)
 	if err != nil {
 		log.Printf("tag cache preparation failed: %s\n", err)
 		b.docker.ServeHTTP(w, r)
@@ -89,7 +87,7 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 
 	b.docker.ServeHTTP(w, r)
 
-	if t.Version == "latest" {
+	if t.version == "latest" {
 		save(t, f)
 	}
 	for _, e := range cf {
@@ -97,7 +95,7 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func load(t *dibs.Tag, f filename) {
+func load(t *tag, f filename) {
 	log.Printf("loading cached file %s", f)
 	output, err := exec.Command("load", t.String(), string(f)).CombinedOutput()
 	if err != nil {
@@ -105,7 +103,7 @@ func load(t *dibs.Tag, f filename) {
 	}
 }
 
-func save(t *dibs.Tag, f filename) {
+func save(t *tag, f filename) {
 	log.Printf("saving image %s to file %s", t, f)
 	output, err := exec.Command("save", t.String(), string(f)).CombinedOutput()
 	if err != nil {
@@ -113,12 +111,12 @@ func save(t *dibs.Tag, f filename) {
 	}
 }
 
-func cachedLatestFilename(t *dibs.Tag) filename {
-	return filename(strings.Replace(t.Image, "/", "~", -1) + ":latest")
+func cachedLatestFilename(t *tag) filename {
+	return filename(strings.Replace(t.image, "/", "~", -1) + ":latest")
 }
 
-func cachedBranchFilename(t *dibs.Tag, bn string) filename {
-	return filename(strings.Replace(t.Image, "/", "~", -1) + ":" + bn)
+func cachedBranchFilename(t *tag, bn string) filename {
+	return filename(strings.Replace(t.image, "/", "~", -1) + ":" + bn)
 }
 
 func parseCachefrom(r *http.Request) ([]string, error) {

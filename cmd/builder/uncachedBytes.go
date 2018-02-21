@@ -10,14 +10,13 @@ import (
 	"strings"
 
 	"code.cloudfoundry.org/bytefmt"
-	"github.com/damoon/docker-image-builder-service/dibs"
 )
 
 func uncachedBytes(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("requested path: %s\n", r.URL)
 
-	t, err := dibs.ParseTag(r)
+	t, err := parseTag(r)
 	if err != nil {
 		log.Printf("parameter t missing: %s\n", err)
 		w.Write([]byte("parameter t missing"))
@@ -59,7 +58,7 @@ func uncachedBytes(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(strconv.FormatUint(bytes, 10)))
 }
 
-func calculateUncachedBytes(t *dibs.Tag, f filename) (uint64, error) {
+func calculateUncachedBytes(t *tag, f filename) (uint64, error) {
 	output, err := exec.Command("uncachedBytes", t.String(), string(f)).CombinedOutput()
 	if err != nil {
 		log.Printf("crawling uncached file %s failed: %v: %v", f, err, string(output))

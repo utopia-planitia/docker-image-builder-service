@@ -6,7 +6,6 @@ FROM golang:1.9.3-alpine3.7 AS compile
 WORKDIR /go/src/github.com/damoon/docker-image-builder-service/
 RUN apk --no-cache add git
 RUN go get code.cloudfoundry.org/bytefmt
-COPY dibs dibs
 COPY cmd/builder cmd/builder
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o builder ./cmd/builder
 
