@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"net/url"
 	"regexp"
 )
 
@@ -18,7 +19,7 @@ func init() {
 }
 
 type builder struct {
-	name            string
+	name            *url.URL
 	proxy           *httputil.ReverseProxy
 	cpuquota        string
 	memory          string

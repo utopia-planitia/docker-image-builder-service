@@ -23,7 +23,7 @@ func newDispatcher(endpoints []*url.URL, cpu, memory *int64, addr *string) *http
 	for i, e := range endpoints {
 		r := httputil.NewSingleHostReverseProxy(e)
 		builders[i] = &builder{
-			name:     e.String(),
+			name:     e,
 			proxy:    r,
 			cpuquota: strconv.FormatInt(*cpu, 10),
 			memory:   strconv.FormatInt(*memory, 10),
@@ -41,6 +41,7 @@ func newDispatcher(endpoints []*url.URL, cpu, memory *int64, addr *string) *http
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", s.handle)
+	mux.HandleFunc("/_ping", ok)
 
 	return &http.Server{
 		Addr:         *addr,
@@ -52,7 +53,7 @@ func newDispatcher(endpoints []*url.URL, cpu, memory *int64, addr *string) *http
 
 func (s *dispatcher) handle(w http.ResponseWriter, r *http.Request) {
 
-	log.Printf("requested path: %s\n", r.URL.Path)
+	log.Printf("requested path: %s\n", r.URL)
 
 	ip, err := parseClientIP(r)
 	if err != nil {
@@ -62,7 +63,10 @@ func (s *dispatcher) handle(w http.ResponseWriter, r *http.Request) {
 	}
 	c := clientID(ip)
 
-	b := s.selectWorker(c)
+	t := r.URL.Query().Get("t")
+	cf := r.URL.Query().Get("cachefrom")
+
+	b := s.selectWorker(c, t, cf)
 	defer s.recycle(b)
 	b.handle(w, r)
 }

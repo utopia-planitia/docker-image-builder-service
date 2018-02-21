@@ -9,11 +9,22 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/damoon/docker-image-builder-service/dibs"
 )
+
+var buildPath *regexp.Regexp
+
+func init() {
+	b, err := regexp.Compile("^/[^/]*/build")
+	if err != nil {
+		log.Fatalf("failed to prepare pattern matching: %s\n", err)
+	}
+	buildPath = b
+}
 
 type filename string
 
@@ -30,6 +41,7 @@ func newBuilder(endpoint *url.URL, addr *string) *http.Server {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", b.handle)
+	mux.HandleFunc("/uncachedBytes", uncachedBytes)
 
 	return &http.Server{
 		Addr:         *addr,
@@ -41,21 +53,25 @@ func newBuilder(endpoint *url.URL, addr *string) *http.Server {
 
 func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 
-	log.Printf("url: %s\n", r.URL.String())
+	log.Printf("requested path: %s\n", r.URL)
 
-	log.Printf("requested path: %s\n", r.URL.Path)
+	if !buildPath.MatchString(r.URL.Path) {
+		b.docker.ServeHTTP(w, r)
+		return
+	}
 
 	t, err := dibs.ParseTag(r)
 	if err != nil {
 		log.Printf("tag cache preparation failed: %s\n", err)
-	}
-	var f filename
-	if t != nil {
-		log.Printf("building tag: %s\n", t)
-		f = cachedLatestFilename(t)
-		load(t, f)
+		b.docker.ServeHTTP(w, r)
+		return
 	}
 
+	var f filename
+
+	log.Printf("building tag: %s\n", t)
+	f = cachedLatestFilename(t)
+	load(t, f)
 	cf, err := parseCachefrom(r)
 	if err != nil {
 		log.Printf("cachefrom preparation failed: %s\n", err)
@@ -66,13 +82,14 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 			load(t, cachedBranchFilename(t, e))
 		}
 	}
+
 	values := r.URL.Query()
 	values.Del("cachefrom")
 	r.URL.RawQuery = values.Encode()
 
 	b.docker.ServeHTTP(w, r)
 
-	if t != nil && t.Version == "latest" {
+	if t.Version == "latest" {
 		save(t, f)
 	}
 	for _, e := range cf {
