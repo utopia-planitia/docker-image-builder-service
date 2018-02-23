@@ -15,6 +15,12 @@ import (
 
 type clientID string
 
+type builderBytesize struct {
+	builder  *builder
+	bytesize int64
+	err      error
+}
+
 const reservation = 10 * time.Second
 
 func (s *dispatcher) reselect(c clientID) (*builder, bool) {
@@ -63,40 +69,59 @@ func selectByUncachedBytes(bs []*builder, t, cf string) (*builder, error) {
 		return bs[0], nil
 	}
 
-	var smallestSize int64
-	smallestSize = math.MaxInt64
-	var indexOfSmallestSize = -1
-	client := &http.Client{
+	c := &http.Client{
 		Timeout: 1 * time.Second,
 	}
+	chs := make([]chan builderBytesize, len(bs))
 	for i, b := range bs {
-		resp, err := client.Get(b.name.String() + "/uncachedBytes?t=" + t + "&cachefrom=" + cf)
-		if err != nil {
-			log.Printf("rpc for uncached bytes failed: %s", err)
+		ch := make(chan builderBytesize)
+		chs[i] = ch
+		go func(b *builder, ch chan builderBytesize) {
+			bytes, err := uncachedBytes(c, b, t, cf)
+			ch <- builderBytesize{
+				builder:  b,
+				bytesize: bytes,
+				err:      err,
+			}
+			close(ch)
+		}(b, ch)
+	}
+
+	var smallestSize int64
+	smallestSize = math.MaxInt64
+	var b *builder
+	for _, ch := range chs {
+		bb := <-ch
+		if bb.err != nil {
+			log.Printf("builder failed to determine uncached size: %s", bb.err)
 			continue
 		}
-		if resp != nil && resp.StatusCode == http.StatusOK {
-			defer resp.Body.Close()
-			body, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				log.Printf("reading response for uncached bytes failed: %s", err)
-				continue
-			}
-			size, err := strconv.ParseInt(string(body), 10, 64)
-			if err != nil {
-				log.Printf("failed to parse uncached size bytes %s: %s", string(body), err)
-				continue
-			}
-			if size < smallestSize {
-				smallestSize = size
-				indexOfSmallestSize = i
-			}
+		if bb.bytesize < smallestSize {
+			smallestSize = bb.bytesize
+			b = bb.builder
 		}
 	}
-	if indexOfSmallestSize == -1 {
+	if b == nil {
 		return nil, errors.New("all builders failed to report uncached bytes size")
 	}
-	return bs[indexOfSmallestSize], nil
+	return b, nil
+}
+
+func uncachedBytes(c *http.Client, b *builder, t, cf string) (int64, error) {
+	resp, err := c.Get(b.name.String() + "/uncachedBytes?t=" + t + "&cachefrom=" + cf)
+	if err != nil {
+		return 0, fmt.Errorf("rpc for uncached bytes failed: %s", err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return 0, fmt.Errorf("reading response for uncached bytes failed: %s", err)
+	}
+	size, err := strconv.ParseInt(string(body), 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse uncached size bytes %s: %s", string(body), err)
+	}
+	return size, nil
 }
 
 func scheduleable(b *builder) bool {
