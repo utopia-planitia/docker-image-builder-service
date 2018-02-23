@@ -1,21 +1,5 @@
 
-.PHONY: up
-up:
-	docker-compose up --build -d
-	$(MAKE) logs
-
-.PHONY: down
-down:
-	docker-compose down --remove-orphans
-
-.PHONY: logs
-logs:
-	docker-compose logs -f
-
-.PHONY: cli
-cli:
-	docker-compose exec dev-tools sh
-
-.PHONY: tests
-tests:
-	docker-compose exec dev-tools bats tests
+include ./etc/help.mk
+include ./etc/compile.mk
+include ./etc/docker-compose.mk
+include ./etc/minikube.mk

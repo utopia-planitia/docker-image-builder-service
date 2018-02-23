@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 mc config host ls | grep $CACHE_SECRET_KEY > /dev/null
 if [ $? != 0 ]; then

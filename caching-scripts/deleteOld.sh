@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #http://shout.setfive.com/2011/12/05/deleting-files-older-than-specified-time-with-s3cmd-and-bash/
 
 olderThan=$((`date +%s` - $CACHE_MAX_AGE))

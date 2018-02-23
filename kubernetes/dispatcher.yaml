@@ -1,0 +1,45 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: dispatcher
+  namespace: container-image-builder
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: dispatcher
+    spec:
+      containers:
+        - name: dispatcher
+          image: davedamoon/docker-image-builder-service:dispatcher-latest
+          args:
+            - --workers=http://builder-0.builder.container-image-builder.svc.cluster.local:2375,http://builder-1.builder.container-image-builder.svc.cluster.local:2375
+          ports:
+            - containerPort: 2375
+              name: docker
+          resources:
+            requests:
+              memory: "100M"
+              cpu: "300m"
+            limits:
+              memory: "100M"
+              cpu: "300m"
+          livenessProbe:
+            tcpSocket:
+              port: 2375
+          readinessProbe:
+            httpGet:
+              path: /_ping
+              port: 2375
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: docker
+  namespace: container-image-builder
+spec:
+  ports:
+    - port: 2375
+  selector:
+    app: dispatcher

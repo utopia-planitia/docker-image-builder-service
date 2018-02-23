@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # $1 = image
 # $2 = file

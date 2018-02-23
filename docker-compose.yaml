@@ -73,7 +73,7 @@ services:
       - -c
       - "sleep 9999d"
     environment:
-      DOCKER_HOST: tcp://dispatcher:2375
+      DOCKER_HOST: tcp://docker:2375
       CACHE_ENDPOINT: http://minio:9000/
       CACHE_BUCKET: test
       CACHE_ACCESS_KEY: 8Q9U4RBHKKB6HU70SRZ1
@@ -82,9 +82,9 @@ services:
     volumes:
       - .:/project
     links:
-      - dispatcher
-      - builder_1
-      - builder_2
+      - dispatcher:docker
+      - builder_1:builder-0.builder
+      - builder_2:builder-1.builder
       - docker_1
       - docker_2
       - minio
