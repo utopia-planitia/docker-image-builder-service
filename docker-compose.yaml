@@ -21,7 +21,8 @@ services:
       - --docker=http://docker_1:2375
     environment:
       DOCKER_HOST: tcp://docker_1:2375
-      CACHE_ENDPOINT: http://minio:9000/
+      CACHE_ENDPOINT_SERVER: minio
+      CACHE_ENDPOINT_PORT: "9000"
       CACHE_BUCKET: image-layers
       CACHE_ACCESS_KEY: 8Q9U4RBHKKB6HU70SRZ1
       CACHE_SECRET_KEY: oxxT2iqBlW6lgaDVe8ll6mP8z/OSVIUnn9cB4+Q0
@@ -37,7 +38,8 @@ services:
       - --docker=http://docker_2:2375
     environment:
       DOCKER_HOST: tcp://docker_2:2375
-      CACHE_ENDPOINT: http://minio:9000/
+      CACHE_ENDPOINT_SERVER: minio
+      CACHE_ENDPOINT_PORT: "9000"
       CACHE_BUCKET: image-layers
       CACHE_ACCESS_KEY: 8Q9U4RBHKKB6HU70SRZ1
       CACHE_SECRET_KEY: oxxT2iqBlW6lgaDVe8ll6mP8z/OSVIUnn9cB4+Q0
@@ -74,7 +76,8 @@ services:
       - "sleep 9999d"
     environment:
       DOCKER_HOST: tcp://docker:2375
-      CACHE_ENDPOINT: http://minio:9000/
+      CACHE_ENDPOINT_SERVER: minio
+      CACHE_ENDPOINT_PORT: "9000"
       CACHE_BUCKET: image-layers
       CACHE_ACCESS_KEY: 8Q9U4RBHKKB6HU70SRZ1
       CACHE_SECRET_KEY: oxxT2iqBlW6lgaDVe8ll6mP8z/OSVIUnn9cB4+Q0

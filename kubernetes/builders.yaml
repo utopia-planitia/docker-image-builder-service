@@ -35,8 +35,10 @@ spec:
           env:
             - name: DOCKER_HOST
               value: tcp://127.0.0.1:2375
-            - name: CACHE_ENDPOINT
-              value: http://minio:9000/
+            - name: CACHE_ENDPOINT_SERVER
+              value: minio
+            - name: CACHE_ENDPOINT_PORT
+              value: "9000"
             - name: CACHE_BUCKET
               value: image-layers
             - name: CACHE_ACCESS_KEY
