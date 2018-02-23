@@ -22,7 +22,7 @@ services:
     environment:
       DOCKER_HOST: tcp://docker_1:2375
       CACHE_ENDPOINT: http://minio:9000/
-      CACHE_BUCKET: test
+      CACHE_BUCKET: image-layers
       CACHE_ACCESS_KEY: 8Q9U4RBHKKB6HU70SRZ1
       CACHE_SECRET_KEY: oxxT2iqBlW6lgaDVe8ll6mP8z/OSVIUnn9cB4+Q0
     links:
@@ -38,7 +38,7 @@ services:
     environment:
       DOCKER_HOST: tcp://docker_2:2375
       CACHE_ENDPOINT: http://minio:9000/
-      CACHE_BUCKET: test
+      CACHE_BUCKET: image-layers
       CACHE_ACCESS_KEY: 8Q9U4RBHKKB6HU70SRZ1
       CACHE_SECRET_KEY: oxxT2iqBlW6lgaDVe8ll6mP8z/OSVIUnn9cB4+Q0
     links:
@@ -75,7 +75,7 @@ services:
     environment:
       DOCKER_HOST: tcp://docker:2375
       CACHE_ENDPOINT: http://minio:9000/
-      CACHE_BUCKET: test
+      CACHE_BUCKET: image-layers
       CACHE_ACCESS_KEY: 8Q9U4RBHKKB6HU70SRZ1
       CACHE_SECRET_KEY: oxxT2iqBlW6lgaDVe8ll6mP8z/OSVIUnn9cB4+Q0
     working_dir: /project
