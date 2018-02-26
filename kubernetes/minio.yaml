@@ -24,13 +24,6 @@ spec:
               value: 8Q9U4RBHKKB6HU70SRZ1
             - name: MINIO_SECRET_KEY
               value: oxxT2iqBlW6lgaDVe8ll6mP8z/OSVIUnn9cB4+Q0
-          resources:
-            requests:
-              memory: "100M"
-              cpu: "300m"
-            limits:
-              memory: "100M"
-              cpu: "300m"
           readinessProbe:
             httpGet:
               path: /minio/login

@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
         - name: builder
-          image: davedamoon/docker-image-builder-service:builder-latest
+          image: utopiaplanitia/docker-image-builder-service:builder-latest
           args:
             - builder
             - --docker=http://127.0.0.1:2376
@@ -48,13 +48,6 @@ spec:
           ports:
             - containerPort: 2375
               name: docker
-          resources:
-            requests:
-              memory: "100M"
-              cpu: "300m"
-            limits:
-              memory: "100M"
-              cpu: "300m"
           livenessProbe:
             tcpSocket:
               port: 2375
@@ -75,13 +68,6 @@ spec:
               value: overlay2
           securityContext:
             privileged: true
-          resources:
-            requests:
-              memory: "1Gi"
-              cpu: "1000m"
-            limits:
-              memory: "1Gi"
-              cpu: "1000m"
           livenessProbe:
             tcpSocket:
               port: 2376

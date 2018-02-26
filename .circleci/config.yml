@@ -1,0 +1,45 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2
+jobs:
+  build:
+    machine:
+      enabled: true
+      image: circleci/classic:201711-01
+    environment:
+      GOPATH: /home/circleci/go
+    working_directory: ~/go/src/github.com/utopia-planitia/docker-image-builder-service
+    steps:
+      - checkout
+      - run:
+          command: |
+            curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/v1.8.4/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+      - run:
+          command: |
+            curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
+      - run:
+          name: init minikube
+          command: |
+            make minikube-init
+            sleep 65536
+          background: true
+      - run:
+          name: prepare alpine image
+          command: |
+            docker pull alpine:3.7
+            docker save alpine:3.7 -o alpine37.tar
+      - run:
+          name: wait for minikube
+          command: |
+            ./etc/await-minikube.sh
+      - run:
+          name: test development setup
+          command: |
+            make minikube-deploy
+            make minikube-tests
+      - run:
+          name: test release image
+          command: |
+            make minikube-deploy-multi-stage-build
+            make minikube-tests
