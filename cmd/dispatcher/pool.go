@@ -132,10 +132,9 @@ func scheduleable(b *builder) bool {
 	if b.dedicatedTo == "" {
 		return true
 	}
-	if b.openConnections == 0 && b.lastestUse <= time.Now().Add(reservation).Unix() {
-		return true
-	}
-	return false
+	notConnected := b.openConnections == 0
+	reservationEnded := b.lastestUse <= time.Now().Add(reservation).Unix()
+	return notConnected && reservationEnded
 }
 
 func (s *dispatcher) recycle(b *builder) {
