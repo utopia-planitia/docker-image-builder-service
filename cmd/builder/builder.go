@@ -101,7 +101,7 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func load(t *tag, f filename) {
+func load(t fmt.Stringer, f filename) {
 	log.Printf("loading cached file %s", f)
 	output, err := exec.Command("load", t.String(), string(f)).CombinedOutput()
 	if err != nil {
@@ -109,7 +109,7 @@ func load(t *tag, f filename) {
 	}
 }
 
-func save(t *tag, f filename) {
+func save(t fmt.Stringer, f filename) {
 	log.Printf("saving image %s to file %s", t, f)
 	output, err := exec.Command("save", t.String(), string(f)).CombinedOutput()
 	if err != nil {

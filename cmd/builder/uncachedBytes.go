@@ -19,14 +19,12 @@ func uncachedBytes(w http.ResponseWriter, r *http.Request) {
 	t, err := parseTag(r)
 	if err != nil {
 		log.Printf("parameter t missing: %s\n", err)
-		w.Write([]byte("parameter t missing"))
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 	cf, err := parseCachefrom(r)
 	if err != nil {
 		log.Printf("parameter cachefrom missing: %s\n", err)
-		w.Write([]byte("parameter cachefrom missing"))
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
@@ -37,28 +35,39 @@ func uncachedBytes(w http.ResponseWriter, r *http.Request) {
 	b, err := calculateUncachedBytes(t, f)
 	if err != nil {
 		log.Printf("failed to add up uncached bytes: %s\n", err)
-		w.Write([]byte("failed to add up uncached bytes"))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	bytes += b
 
+	bytesCacheFrom, err := uncachedBytesCacheFrom(cf, t)
+	if err != nil {
+		log.Printf("failed to add up uncached bytes: %s\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	bytes += bytesCacheFrom
+
+	_, err = w.Write([]byte(strconv.FormatUint(bytes, 10)))
+	if err != nil {
+		log.Printf("failed write result: %s\n", err)
+	}
+}
+
+func uncachedBytesCacheFrom(cf []string, t *tag) (uint64, error) {
+	var bytes uint64
 	for _, e := range cf {
-		f = cachedBranchFilename(t, e)
+		f := cachedBranchFilename(t, e)
 		b, err := calculateUncachedBytes(t, f)
 		if err != nil {
-			log.Printf("failed to add up uncached bytes: %s\n", err)
-			w.Write([]byte("failed to add up uncached bytes"))
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+			return 0, err
 		}
 		bytes += b
 	}
-
-	w.Write([]byte(strconv.FormatUint(bytes, 10)))
+	return bytes, nil
 }
 
-func calculateUncachedBytes(t *tag, f filename) (uint64, error) {
+func calculateUncachedBytes(t fmt.Stringer, f filename) (uint64, error) {
 	output, err := exec.Command("uncachedBytes", t.String(), string(f)).CombinedOutput()
 	if err != nil {
 		log.Printf("crawling uncached file %s failed: %v: %v", f, err, string(output))
