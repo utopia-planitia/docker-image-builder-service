@@ -21,7 +21,7 @@ jobs:
       - run:
           name: init minikube
           command: |
-            make minikube-init
+            make init
             sleep 65536
           background: true
       - run:
@@ -36,10 +36,10 @@ jobs:
       - run:
           name: test development setup
           command: |
-            make minikube-deploy
-            make minikube-tests
+            make deploy
+            make tests
       - run:
           name: test release image
           command: |
-            make minikube-deploy-multi-stage-build
-            make minikube-tests
+            make deploy-multi-stage-build
+            make tests

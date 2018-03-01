@@ -1,29 +1,29 @@
 
-.PHONY: minikube-start
-minikube-start:
-	$(MAKE) minikube-init
-	$(MAKE) minikube-await
+.PHONY: start
+start:
+	$(MAKE) init
+	$(MAKE) await
 
-.PHONY: minikube-init
-minikube-init:
+.PHONY: init
+init:
 	./etc/start-minikube.sh
 	minikube update-context
 
-.PHONY: minikube-await
-minikube-await:
+.PHONY: await
+await:
 	./etc/await-minikube.sh
 
-.PHONY: minikube-stop
-minikube-stop:
+.PHONY: stop
+stop:
 	sudo -E systemctl stop localkube
 	docker ps -aq --filter name=k8s | xargs -r docker rm -f
 
-.PHONY: minikube-logs
-minikube-logs:
+.PHONY: logs
+logs:
 	ktail -n container-image-builder
 
-.PHONY: minikube-cli
-minikube-cli:
+.PHONY: cli
+cli:
 	docker build -f docker/dev-tools/Dockerfile  -t utopiaplanitia/docker-image-builder-service:dev-tools-latest .
 	docker run -ti --rm \
 		--dns 10.96.0.10 --dns-search container-image-builder.svc.cluster.local \
@@ -36,8 +36,8 @@ minikube-cli:
 		-v $(PWD):/project -w /project \
 		utopiaplanitia/docker-image-builder-service:dev-tools-latest sh
 
-.PHONY: minikube-tests
-minikube-tests:
+.PHONY: tests
+tests:
 	docker build -f docker/dev-tools/Dockerfile  -t utopiaplanitia/docker-image-builder-service:dev-tools-latest .
 	docker run -ti --rm \
 		--dns 10.96.0.10 --dns-search container-image-builder.svc.cluster.local \
@@ -50,15 +50,15 @@ minikube-tests:
 		-v $(PWD):/project -w /project \
 		utopiaplanitia/docker-image-builder-service:dev-tools-latest bats tests
 
-.PHONY: minikube-deploy
-minikube-deploy: dispatcher builder
+.PHONY: deploy
+deploy: dispatcher builder
 	docker build -f docker/builder/Dockerfile    -t utopiaplanitia/docker-image-builder-service:builder-latest .
 	docker build -f docker/dispatcher/Dockerfile -t utopiaplanitia/docker-image-builder-service:dispatcher-latest .
 	kubectl apply -f kubernetes/namespace.yaml -f kubernetes
 	./etc/restart-pods.sh
 
-.PHONY: minikube-deploy-multi-stage-build
-minikube-deploy-multi-stage-build:
+.PHONY: deploy-multi-stage-build
+deploy-multi-stage-build:
 	docker build -f kubernetes/images/builder/Dockerfile    -t utopiaplanitia/docker-image-builder-service:builder-latest .
 	docker build -f kubernetes/images/dispatcher/Dockerfile -t utopiaplanitia/docker-image-builder-service:dispatcher-latest .
 	kubectl apply -f kubernetes/namespace.yaml -f kubernetes
