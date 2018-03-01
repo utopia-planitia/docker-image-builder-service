@@ -87,8 +87,7 @@ func selectByUncachedBytes(bs []*builder, t, cf string) (*builder, error) {
 		}(b, ch)
 	}
 
-	var smallestSize int64
-	smallestSize = math.MaxInt64
+	var smallestSize int64 = math.MaxInt64
 	var b *builder
 	for _, ch := range chs {
 		bb := <-ch
@@ -112,7 +111,12 @@ func uncachedBytes(c *http.Client, b *builder, t, cf string) (int64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("rpc for uncached bytes failed: %s", err)
 	}
-	defer resp.Body.Close()
+	defer func(r *http.Response) {
+		closingErr := resp.Body.Close()
+		if closingErr != nil {
+			log.Printf("closing response body failed: %s", err)
+		}
+	}(resp)
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return 0, fmt.Errorf("reading response for uncached bytes failed: %s", err)
