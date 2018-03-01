@@ -34,12 +34,10 @@ jobs:
           command: |
             ./etc/await-minikube.sh
       - run:
-          name: test development setup
+          name: deploy
           command: |
             make deploy
-            make tests
       - run:
-          name: test release image
+          name: test
           command: |
-            make deploy-multi-stage-build
             make tests

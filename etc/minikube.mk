@@ -51,15 +51,8 @@ tests:
 		utopiaplanitia/docker-image-builder-service:dev-tools-latest bats tests
 
 .PHONY: deploy
-deploy: dispatcher builder
+deploy:
 	docker build -f docker/builder/Dockerfile    -t utopiaplanitia/docker-image-builder-service:builder-latest .
 	docker build -f docker/dispatcher/Dockerfile -t utopiaplanitia/docker-image-builder-service:dispatcher-latest .
-	kubectl apply -f kubernetes/namespace.yaml -f kubernetes
-	./etc/restart-pods.sh
-
-.PHONY: deploy-multi-stage-build
-deploy-multi-stage-build:
-	docker build -f kubernetes/images/builder/Dockerfile    -t utopiaplanitia/docker-image-builder-service:builder-latest .
-	docker build -f kubernetes/images/dispatcher/Dockerfile -t utopiaplanitia/docker-image-builder-service:dispatcher-latest .
 	kubectl apply -f kubernetes/namespace.yaml -f kubernetes
 	./etc/restart-pods.sh
