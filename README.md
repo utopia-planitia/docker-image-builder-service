@@ -13,8 +13,8 @@ The worker with the least amount of cache to catch up will be preferrd.
 
 local development happens via minikube
 ```
-make minikube-start
-make minikube-deploy
-make minikube-test
-make minikube-stop
+make start
+make deploy
+make test
+make stop
 ```
