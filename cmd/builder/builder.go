@@ -70,7 +70,7 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 	log.Printf("building tag: %s\n", t)
 	f = cachedLatestFilename(t)
 	load(t, f)
-	cf, err := parseCachefrom(r)
+	cf, err := parseCachefromBranches(r)
 	if err != nil {
 		log.Printf("cachefrom preparation failed: %s\n", err)
 	}
@@ -84,9 +84,11 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	values := r.URL.Query()
-	values.Del("cachefrom")
-	r.URL.RawQuery = values.Encode()
+	if len(cf) != 0 {
+		values := r.URL.Query()
+		values.Del("cachefrom")
+		r.URL.RawQuery = values.Encode()
+	}
 
 	b.docker.ServeHTTP(w, r)
 
@@ -140,6 +142,20 @@ func parseCachefrom(r *http.Request) ([]string, error) {
 	err := j.Decode(&l)
 	if err != nil {
 		return nil, fmt.Errorf("failed to json decode cachefrom: %s", err)
+	}
+	return l, nil
+}
+
+func parseCachefromBranches(r *http.Request) ([]string, error) {
+	cf, err := parseCachefrom(r)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse branches: %s", err)
+	}
+	var l []string
+	for _, e := range cf {
+		if strings.HasPrefix(e, "branch=") {
+			l = append(l, e[len("branch="):])
+		}
 	}
 	return l, nil
 }
