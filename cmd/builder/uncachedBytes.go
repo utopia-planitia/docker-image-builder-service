@@ -18,13 +18,13 @@ func uncachedBytes(w http.ResponseWriter, r *http.Request) {
 
 	t, err := parseTag(r)
 	if err != nil {
-		log.Printf("parameter t missing: %s\n", err)
+		log.Printf("failed to parse tag: %s\n", err)
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
-	cf, err := parseCachefrom(r)
+	cf, err := parseCachefromBranches(r)
 	if err != nil {
-		log.Printf("parameter cachefrom missing: %s\n", err)
+		log.Printf("failed to parse branches: %s\n", err)
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
