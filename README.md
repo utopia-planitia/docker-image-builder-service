@@ -7,6 +7,8 @@ The worker with the least amount of cache to catch up will be preferrd.
 
 Build [![CircleCI](https://circleci.com/gh/utopia-planitia/docker-image-builder-service.svg?style=svg)](https://circleci.com/gh/utopia-planitia/docker-image-builder-service)
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/utopia-planitia/docker-image-builder-service)](https://goreportcard.com/report/github.com/utopia-planitia/docker-image-builder-service)
+
 ## Development
 
 local development happens via minikube
