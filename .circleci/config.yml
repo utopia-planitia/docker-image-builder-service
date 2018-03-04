@@ -12,7 +12,7 @@ jobs:
       - restore_cache:
           name: restore tools cache
           keys:
-            - tools-v1
+            - tools-v2
       - checkout
       - run:
           name: install kubectl & minikube
@@ -34,6 +34,16 @@ jobs:
             sleep 65536
           background: true
       - run:
+          name: install go metalinter
+          command: |
+            if [ ! -d gometalinter ]; then
+              mkdir gometalinter
+              go get -u github.com/alecthomas/gometalinter
+              $GOPATH/bin/gometalinter --install
+              mv $GOPATH/bin/* gometalinter
+            fi
+            sudo cp gometalinter/* /usr/local/bin/
+      - run:
           name: preload docker imags
           command: |
             mkdir -p docker-image-cache
@@ -48,13 +58,14 @@ jobs:
             make await
       - save_cache:
           name: save tools cache
-          key: tools-v1
+          key: tools-v2
           paths:
             - kubectl
             - minikube
             - .minikube
             - docker-image-cache
             - .git
+            - gometalinter
       - run:
           name: deploy
           command: |
@@ -71,3 +82,8 @@ jobs:
             sudo apt-get update
             sudo apt-get install shellcheck
             shellcheck etc/*.sh caching-scripts/*.sh
+      - run:
+          name: lint go
+          command: |
+            go get -t ./...
+            gometalinter ./...

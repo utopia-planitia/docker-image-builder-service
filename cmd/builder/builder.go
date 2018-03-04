@@ -65,54 +65,60 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var f filename
-
 	log.Printf("building tag: %s\n", t)
-	f = cachedLatestFilename(t)
-	load(t, f)
+	f := cachedLatestFilename(t)
 	cf, err := parseCachefromBranches(r)
 	if err != nil {
 		log.Printf("cachefrom preparation failed: %s\n", err)
 	}
-	if cf != nil {
-		log.Printf("cachefrom: %s\n", cf)
-		for _, e := range cf {
-			if e == "master" {
-				continue
-			}
-			load(t, cachedBranchFilename(t, e))
-		}
-	}
-
 	if len(cf) != 0 {
 		values := r.URL.Query()
 		values.Del("cachefrom")
 		r.URL.RawQuery = values.Encode()
 	}
 
+	load(t, cf, f)
 	b.docker.ServeHTTP(w, r)
+	save(t, cf, f)
+}
 
+func load (t *tag, cf []string, f filename) () {
+	loadCommand(t, f)
+	if cf != nil {
+		log.Printf("cachefrom: %s\n", cf)
+		for _, e := range cf {
+			if e == "master" {
+				continue
+			}
+			loadCommand(t, cachedBranchFilename(t, e))
+		}
+	}
+}
+
+func save (t *tag, cf []string, f filename) () {
 	if t.version == "latest" {
-		save(t, f)
+		saveCommand(t, f)
 	}
 	for _, e := range cf {
 		if e == "master" {
 			continue
 		}
-		save(t, cachedBranchFilename(t, e))
+		saveCommand(t, cachedBranchFilename(t, e))
 	}
 }
 
-func load(t fmt.Stringer, f filename) {
+func loadCommand(t fmt.Stringer, f filename) {
 	log.Printf("loading cached file %s", f)
+	/* #nosec */
 	output, err := exec.Command("load", t.String(), string(f)).CombinedOutput()
 	if err != nil {
 		log.Printf("loading cached file %s failed: %v: %v", f, err, string(output))
 	}
 }
 
-func save(t fmt.Stringer, f filename) {
+func saveCommand(t fmt.Stringer, f filename) {
 	log.Printf("saving image %s to file %s", t, f)
+	/* #nosec */
 	output, err := exec.Command("save", t.String(), string(f)).CombinedOutput()
 	if err != nil {
 		log.Printf("saving image %s to file %s failed: %v: %v", t, f, err, string(output))
