@@ -8,9 +8,8 @@ export KUBECONFIG=$HOME/.kube/config
 
 # this for loop waits until kubectl can access the api server that Minikube has created
 echo -n wait for minikube to start
-for i in {1..150}; do # timeout for 5 minutes
-  kubectl version | grep "Server Version" > /dev/null 2>&1
-  if [ $? -eq 0 ]; then
+for _ in {1..150}; do # timeout for 5 minutes
+  if kubectl version | grep "Server Version" > /dev/null 2>&1; then
       echo " done"
       break
   fi
@@ -19,9 +18,8 @@ for i in {1..150}; do # timeout for 5 minutes
 done
 
 echo -n wait for local node to join
-for i in {1..150}; do # timeout for 5 minutes
-  kubectl get no | grep " Ready " > /dev/null 2>&1
-  if [ $? -eq 0 ]; then
+for _ in {1..150}; do # timeout for 5 minutes
+  if kubectl get no | grep " Ready " > /dev/null 2>&1; then
       echo " done"
       break
   fi
@@ -30,9 +28,8 @@ for i in {1..150}; do # timeout for 5 minutes
 done
 
 echo -n wait for dns to start
-for i in {1..150}; do # timeout for 5 minutes
-  kubectl get --no-headers=true pods -n kube-system -l k8s-app=kube-dns | grep " Running " | grep "3/3" > /dev/null 2>&1
-  if [ $? -eq 0 ]; then
+for _ in {1..150}; do # timeout for 5 minutes
+  if kubectl get --no-headers=true pods -n kube-system -l k8s-app=kube-dns | grep " Running " | grep "3/3" > /dev/null 2>&1; then
       echo " done"
       break
   fi
@@ -44,9 +41,8 @@ done
 
 # workaround https://github.com/kubernetes/minikube/issues/1947
 echo -n getting name of kubedns pod
-for i in {1..150}; do # timeout for 5 minutes
-  KUBEDNS_POD=$(kubectl get --no-headers=true pods -n kube-system -l k8s-app=kube-dns -o custom-columns=:metadata.name)
-  if [ $? -eq 0 ]; then
+for _ in {1..150}; do # timeout for 5 minutes
+  if KUBEDNS_POD=$(kubectl get --no-headers=true pods -n kube-system -l k8s-app=kube-dns -o custom-columns=:metadata.name); then
       echo " done"
       break
   fi
@@ -55,9 +51,8 @@ for i in {1..150}; do # timeout for 5 minutes
 done
 
 echo -n fixing kubedns upstream server
-for i in {1..150}; do # timeout for 5 minutes
-  kubectl exec -n kube-system $KUBEDNS_POD -c kubedns -- sh -c "echo nameserver 8.8.8.8 > /etc/resolv.conf"
-  if [ $? -eq 0 ]; then
+for _ in {1..150}; do # timeout for 5 minutes
+  if kubectl exec -n kube-system "$KUBEDNS_POD" -c kubedns -- sh -c "echo nameserver 8.8.8.8 > /etc/resolv.conf"; then
       echo " done"
       break
   fi
