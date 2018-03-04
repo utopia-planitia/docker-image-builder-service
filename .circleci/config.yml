@@ -9,30 +9,87 @@ jobs:
       image: circleci/classic:201711-01
     environment:
       GOPATH: /home/circleci/go
+      MINIKUBE_HOME: /home/circleci/go/src/github.com/utopia-planitia/docker-image-builder-service
     working_directory: ~/go/src/github.com/utopia-planitia/docker-image-builder-service
     steps:
       - checkout
+      - restore_cache:
+          name: restore kubectl binary cache
+          keys:
+            - kubectl-v1-v1.8.4
       - run:
+          name: download kubectl
           command: |
-            curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/v1.8.4/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+            if [ ! -f kubectl ]; then
+              curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/v1.8.4/bin/linux/amd64/kubectl
+            fi
+            chmod +x kubectl
+            sudo cp kubectl /usr/local/bin/
+      - save_cache:
+          name: save kubectl binary cache
+          key: kubectl-v1-v1.8.4
+          paths:
+            - kubectl
+      - restore_cache:
+          name: restore minikube binary cache
+          keys:
+            - minikube-v2-v0.25.0
       - run:
+          name: download minikube
           command: |
-            curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
+            if [ ! -f minikube ]; then
+              curl -Lo minikube https://github.com/kubernetes/minikube/releases/download/v0.25.0/minikube-linux-amd64
+            fi
+            chmod +x minikube
+            sudo cp minikube /usr/local/bin/
+      - save_cache:
+          name: save minikube binary cache
+          key: minikube-v2-v0.25.0
+          paths:
+            - minikube
+      - restore_cache:
+          name: restore minikube cache
+          keys:
+            - minikube-state-v1-{{ .Branch }}-{{ .Revision }}
+            - minikube-state-v1-{{ .Branch }}-
+            - minikube-state-v1-master-
+            - minikube-state-v1-
       - run:
           name: init minikube
           command: |
             make init
             sleep 65536
           background: true
+      - restore_cache:
+          name: restore docker image cache
+          keys:
+            - docker-images-v1-{{ .Branch }}-{{ .Revision }}
+            - docker-images-v1-{{ .Branch }}-
+            - docker-images-v1-master-
+            - docker-images-v1-
       - run:
-          name: prepare alpine image
+          name: preload docker imags
           command: |
-            docker pull alpine:3.7
-            docker save alpine:3.7 -o alpine37.tar
+            mkdir -p docker-image-cache
+            cd docker-image-cache
+            ../etc/docker-image.sh minio/minio:RELEASE.2018-02-09T22-40-05Z minio-RELEASE.2018-02-09T22-40-05Z
+            ../etc/docker-image.sh docker:17.11.0-ce-dind                   docker-17.11.0-ce-dind
+            ../etc/docker-image.sh golang:1.9.3-alpine3.7                   golang-1.9.3-alpine3.7
+            ../etc/docker-image.sh alpine:3.7                               alpine-3.7
+      - save_cache:
+          name: save docker image cache
+          key: docker-images-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - docker-image-cache
       - run:
           name: wait for minikube
           command: |
-            ./etc/await-minikube.sh
+            make await
+      - save_cache:
+          name: save minikube cache
+          key: minikube-state-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - .minikube
       - run:
           name: deploy
           command: |
@@ -40,4 +97,6 @@ jobs:
       - run:
           name: test
           command: |
+            docker pull alpine:3.7
+            docker save alpine:3.7 -o alpine37.tar
             make tests
