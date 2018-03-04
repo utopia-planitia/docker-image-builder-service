@@ -82,7 +82,7 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 	save(t, cf, f)
 }
 
-func load (t *tag, cf []string, f filename) () {
+func load(t *tag, cf []string, f filename) {
 	loadCommand(t, f)
 	if cf != nil {
 		log.Printf("cachefrom: %s\n", cf)
@@ -95,7 +95,7 @@ func load (t *tag, cf []string, f filename) () {
 	}
 }
 
-func save (t *tag, cf []string, f filename) () {
+func save(t *tag, cf []string, f filename) {
 	if t.version == "latest" {
 		saveCommand(t, f)
 	}
