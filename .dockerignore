@@ -1,5 +1,9 @@
-.dockerignore
-.git
-.gitignore
-Makefile
-docker-compose.yaml
+/.dockerignore
+/.git
+/.gitignore
+/Makefile
+/docker-compose.yaml
+/docker-image-cache
+/.minikube
+/minikube
+/kubectl
