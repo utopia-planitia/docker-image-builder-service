@@ -1,6 +1,3 @@
-# Golang CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2
 jobs:
   build:
@@ -63,8 +60,14 @@ jobs:
           command: |
             make deploy
       - run:
-          name: test
+          name: tests
           command: |
             docker pull alpine:3.7
             docker save alpine:3.7 -o alpine37.tar
             make tests
+      - run:
+          name: lint bash
+          command: |
+            sudo apt-get update
+            sudo apt-get install shellcheck
+            shellcheck etc/*.sh caching-scripts/*.sh
