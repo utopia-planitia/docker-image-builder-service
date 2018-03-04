@@ -68,6 +68,7 @@ func uncachedBytesCacheFrom(cf []string, t *tag) (uint64, error) {
 }
 
 func calculateUncachedBytes(t fmt.Stringer, f filename) (uint64, error) {
+	/* #nosec */
 	output, err := exec.Command("uncachedBytes", t.String(), string(f)).CombinedOutput()
 	if err != nil {
 		log.Printf("crawling uncached file %s failed: %v: %v", f, err, string(output))
