@@ -33,6 +33,7 @@ type builder struct {
 func newBuilder(endpoint *url.URL, addr *string) *http.Server {
 
 	d := httputil.NewSingleHostReverseProxy(endpoint)
+	d.FlushInterval = 100 * time.Millisecond
 	b := &builder{
 		docker: d,
 	}
