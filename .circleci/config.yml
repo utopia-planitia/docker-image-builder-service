@@ -6,8 +6,8 @@ jobs:
       image: circleci/classic:201711-01
     environment:
       GOPATH: /home/circleci/go
-      MINIKUBE_HOME: /home/circleci/go/src/github.com/utopia-planitia/docker-image-builder-service
-    working_directory: ~/go/src/github.com/utopia-planitia/docker-image-builder-service
+      MINIKUBE_HOME: /home/circleci/go/src/github.com/utopia-planitia/docker-image-builder
+    working_directory: ~/go/src/github.com/utopia-planitia/docker-image-builder
     steps:
       - restore_cache:
           name: restore tools cache
