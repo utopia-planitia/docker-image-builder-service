@@ -26,18 +26,21 @@ func parseTag(r *http.Request) (*tag, error) {
 }
 
 func newTag(t string) (*tag, error) {
-	s := strings.Split(t, ":")
-	if len(s) == 2 {
+	i := strings.LastIndex(t, ":")
+	if i == -1 {
 		return &tag{
-			image:   s[0],
-			version: s[1],
-		}, nil
-	}
-	if len(s) == 1 {
-		return &tag{
-			image:   s[0],
+			image:   t,
 			version: "latest",
 		}, nil
 	}
-	return &tag{}, errors.New("tag is malformed")
+	if i < strings.LastIndex(t, "/") {
+		return &tag{
+			image:   t,
+			version: "latest",
+		}, nil
+	}
+	return &tag{
+		image:   t[:i],
+		version: t[i+1:],
+	}, nil
 }
