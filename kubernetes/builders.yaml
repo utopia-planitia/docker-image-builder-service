@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
         - name: builder
-          image: utopiaplanitia/docker-image-builder-service:builder-latest
+          image: utopiaplanitia/docker-image-builder-worker:latest
           args:
             - builder
             - --docker=http://127.0.0.1:2376
