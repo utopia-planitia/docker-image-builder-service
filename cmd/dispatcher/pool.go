@@ -95,7 +95,7 @@ func selectByUncachedBytes(bs []*builder, t, cf string) (*builder, error) {
 			log.Printf("builder failed to determine uncached size: %s", bb.err)
 			continue
 		}
-		if bb.bytesize < smallestSize {
+		if bb.bytesize <= smallestSize {
 			smallestSize = bb.bytesize
 			b = bb.builder
 		}

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"os/exec"
 	"strconv"
@@ -34,19 +35,21 @@ func uncachedBytes(w http.ResponseWriter, r *http.Request) {
 	f := cachedLatestFilename(t)
 	b, err := calculateUncachedBytes(t, f)
 	if err != nil {
-		log.Printf("failed to add up uncached bytes: %s\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		log.Printf("failed to add up uncached bytes for tag %s: %s\n", t, err)
+		bytes = math.MaxInt64
 	}
-	bytes += b
+	if bytes != math.MaxInt64 {
+		bytes += b
+	}
 
 	bytesCacheFrom, err := uncachedBytesCacheFrom(cf, t)
 	if err != nil {
-		log.Printf("failed to add up uncached bytes: %s\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		log.Printf("failed to add up uncached bytes for cache-from: %s\n", err)
+		bytes = math.MaxInt64
 	}
-	bytes += bytesCacheFrom
+	if bytes != math.MaxInt64 {
+		bytes += bytesCacheFrom
+	}
 
 	_, err = w.Write([]byte(strconv.FormatUint(bytes, 10)))
 	if err != nil {
@@ -71,7 +74,7 @@ func calculateUncachedBytes(t fmt.Stringer, f filename) (uint64, error) {
 	/* #nosec */
 	output, err := exec.Command("uncachedBytes", t.String(), string(f)).CombinedOutput()
 	if err != nil {
-		log.Printf("crawling uncached file %s failed: %v: %v", f, err, string(output))
+		return 0, fmt.Errorf("crawling uncached file %s failed: %v: %v", f, err, string(output))
 	}
 	var bytes uint64
 	scanner := bufio.NewScanner(strings.NewReader(string(output)))
