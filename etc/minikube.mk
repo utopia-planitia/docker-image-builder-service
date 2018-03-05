@@ -24,7 +24,7 @@ logs: ##@setup Shows logs.
 
 .PHONY: cli
 cli: ##@development Opens a command line interface with development tools.
-	docker build -f docker/dev-tools/Dockerfile  -t utopiaplanitia/docker-image-builder-service:dev-tools-latest .
+	docker build -f docker/devtools/Dockerfile  -t utopiaplanitia/docker-image-builder-devtools:latest .
 	docker run -ti --rm \
 		--dns 10.96.0.10 --dns-search container-image-builder.svc.cluster.local \
 		-e DOCKER_HOST=tcp://docker:2375 \
@@ -34,11 +34,11 @@ cli: ##@development Opens a command line interface with development tools.
 		-e CACHE_ACCESS_KEY=8Q9U4RBHKKB6HU70SRZ1 \
 		-e CACHE_SECRET_KEY=oxxT2iqBlW6lgaDVe8ll6mP8z/OSVIUnn9cB4+Q0 \
 		-v $(PWD):/project -w /project \
-		utopiaplanitia/docker-image-builder-service:dev-tools-latest sh
+		utopiaplanitia/docker-image-builder-devtools:latest sh
 
 .PHONY: tests
 tests: ##@development Runs the tests.
-	docker build -f docker/dev-tools/Dockerfile  -t utopiaplanitia/docker-image-builder-service:dev-tools-latest .
+	docker build -f docker/devtools/Dockerfile  -t utopiaplanitia/docker-image-builder-devtools:latest .
 	docker run -ti --rm \
 		--dns 10.96.0.10 --dns-search container-image-builder.svc.cluster.local \
 		-e DOCKER_HOST=tcp://docker:2375 \
@@ -48,11 +48,20 @@ tests: ##@development Runs the tests.
 		-e CACHE_ACCESS_KEY=8Q9U4RBHKKB6HU70SRZ1 \
 		-e CACHE_SECRET_KEY=oxxT2iqBlW6lgaDVe8ll6mP8z/OSVIUnn9cB4+Q0 \
 		-v $(PWD):/project -w /project \
-		utopiaplanitia/docker-image-builder-service:dev-tools-latest bats tests
+		utopiaplanitia/docker-image-builder-devtools:latest bats tests
 
 .PHONY: deploy
 deploy: ##@development Deploys the current code.
-	docker build -f docker/builder/Dockerfile    -t utopiaplanitia/docker-image-builder-service:builder-latest .
-	docker build -f docker/dispatcher/Dockerfile -t utopiaplanitia/docker-image-builder-service:dispatcher-latest .
+	docker build -f docker/builder/Dockerfile    -t utopiaplanitia/docker-image-builder-worker:latest .
+	docker build -f docker/dispatcher/Dockerfile -t utopiaplanitia/docker-image-builder-dispatcher:latest .
 	kubectl apply -f kubernetes/namespace.yaml -f kubernetes
 	./etc/restart-pods.sh
+
+.PHONY: build-push
+build-push: ##@release Build and push the images.
+	docker build -f docker/devtools/Dockerfile  -t utopiaplanitia/docker-image-builder-devtools:latest .
+	docker build -f docker/builder/Dockerfile    -t utopiaplanitia/docker-image-builder-worker:latest .
+	docker build -f docker/dispatcher/Dockerfile -t utopiaplanitia/docker-image-builder-dispatcher:latest .
+	docker push utopiaplanitia/docker-image-builder-devtools:latest
+	docker push utopiaplanitia/docker-image-builder-worker:latest
+	docker push utopiaplanitia/docker-image-builder-dispatcher:latest
