@@ -1,0 +1,32 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: devtools
+  namespace: container-image-builder
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: devtools
+    spec:
+      containers:
+        - name: devtools
+          image: utopiaplanitia/docker-image-builder-devtools:latest
+          args:
+            - sh
+            - -c
+            - "sleep 4294967296"
+          env:
+            - name: DOCKER_HOST
+              value: tcp://docker:2375
+            - name: CACHE_ENDPOINT_SERVER
+              value: minio
+            - name: CACHE_ENDPOINT_PORT
+              value: "9000"
+            - name: CACHE_BUCKET
+              value: image-layers
+            - name: CACHE_ACCESS_KEY
+              value: 8Q9U4RBHKKB6HU70SRZ1
+            - name: CACHE_SECRET_KEY
+              value: oxxT2iqBlW6lgaDVe8ll6mP8z/OSVIUnn9cB4+Q0
