@@ -22,6 +22,7 @@ func newDispatcher(endpoints []*url.URL, cpu, memory *int64, addr *string) *http
 
 	for i, e := range endpoints {
 		r := httputil.NewSingleHostReverseProxy(e)
+		r.FlushInterval = 100 * time.Millisecond
 		builders[i] = &builder{
 			name:     e,
 			proxy:    r,
