@@ -17,38 +17,40 @@ func uncachedBytes(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("requested path: %s\n", r.URL)
 
-	t, err := parseTag(r)
+	tags, branches, err := parseTagsAndBranches(r)
 	if err != nil {
-		log.Printf("failed to parse tag: %s\n", err)
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		return
-	}
-	cf, err := parseCachefromBranches(r)
-	if err != nil {
-		log.Printf("failed to parse branches: %s\n", err)
+		log.Printf("failed to parse tags and branches from request: %s\n", err)
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
 	var bytes uint64
 
-	f := cachedLatestFilename(t)
-	b, err := calculateUncachedBytes(t, f)
-	if err != nil {
-		log.Printf("failed to add up uncached bytes for tag %s: %s\n", t, err)
-		bytes = math.MaxInt64
-	}
-	if bytes != math.MaxInt64 {
-		bytes += b
+	if len(tags) != 0 {
+		uncached, err := calculateUncachedBytes(tags[0], cachedLatestFilename(tags[0]))
+		if err != nil {
+			log.Printf("failed to calculate uncached bytes for tag %s: %s\n", tags[0], err)
+			bytes = math.MaxInt64
+		}
+		if bytes != math.MaxInt64 {
+			bytes += uncached
+		}
 	}
 
-	bytesCacheFrom, err := uncachedBytesCacheFrom(cf, t)
-	if err != nil {
-		log.Printf("failed to add up uncached bytes for cache-from: %s\n", err)
-		bytes = math.MaxInt64
-	}
-	if bytes != math.MaxInt64 {
-		bytes += bytesCacheFrom
+	for _, b := range branches {
+		if b == "master" {
+			continue
+		}
+		for _, t := range tags {
+			uncached, err := calculateUncachedBytes(t, cachedBranchFilename(t, b))
+			if err != nil {
+				log.Printf("failed to calculate uncached bytes for branch %s / tag %s: %s\n", b, tags[0], err)
+				bytes = math.MaxInt64
+			}
+			if bytes != math.MaxInt64 {
+				bytes += uncached
+			}
+		}
 	}
 
 	_, err = w.Write([]byte(strconv.FormatUint(bytes, 10)))
@@ -70,7 +72,7 @@ func uncachedBytesCacheFrom(cf []string, t *tag) (uint64, error) {
 	return bytes, nil
 }
 
-func calculateUncachedBytes(t fmt.Stringer, f filename) (uint64, error) {
+func calculateUncachedBytes(t *tag, f filename) (uint64, error) {
 	/* #nosec */
 	output, err := exec.Command("uncachedBytes", t.String(), string(f)).CombinedOutput()
 	if err != nil {

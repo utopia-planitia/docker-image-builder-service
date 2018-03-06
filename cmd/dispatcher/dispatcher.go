@@ -64,10 +64,13 @@ func (s *dispatcher) handle(w http.ResponseWriter, r *http.Request) {
 	}
 	c := clientID(ip)
 
-	t := r.URL.Query().Get("t")
-	cf := r.URL.Query().Get("cachefrom")
+	t := r.URL.Query()["t"]
+	cf := r.URL.Query()["cachefrom"]
+	v := url.Values{}
+	v["t"] = t
+	v["cachefrom"] = cf
 
-	b := s.selectWorker(c, t, cf)
+	b := s.selectWorker(c, v)
 	defer s.recycle(b)
 	b.handle(w, r)
 }
