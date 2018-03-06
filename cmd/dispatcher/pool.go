@@ -8,6 +8,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -39,7 +40,7 @@ func (s *dispatcher) reselect(c clientID) (*builder, bool) {
 	return nil, false
 }
 
-func (s *dispatcher) findScheduleable(c clientID, t, cf string) (*builder, error) {
+func (s *dispatcher) findScheduleable(c clientID, v url.Values) (*builder, error) {
 	r := rand.New(rand.NewSource(time.Now().Unix()))
 	var selectableBuilders []*builder
 	for _, i := range r.Perm(len(s.builders)) {
@@ -53,7 +54,7 @@ func (s *dispatcher) findScheduleable(c clientID, t, cf string) (*builder, error
 		return nil, nil
 	}
 
-	b, err := selectByUncachedBytes(selectableBuilders, t, cf)
+	b, err := selectByUncachedBytes(selectableBuilders, v)
 	if err != nil {
 		return nil, fmt.Errorf("failed to select builder on uncached bytes size: %s", err)
 	}
@@ -64,8 +65,8 @@ func (s *dispatcher) findScheduleable(c clientID, t, cf string) (*builder, error
 	return b, nil
 }
 
-func selectByUncachedBytes(bs []*builder, t, cf string) (*builder, error) {
-	if t == "" {
+func selectByUncachedBytes(bs []*builder, v url.Values) (*builder, error) {
+	if len(v["t"]) == 0 && len(v["cf"]) == 0 {
 		return bs[0], nil
 	}
 
@@ -77,7 +78,7 @@ func selectByUncachedBytes(bs []*builder, t, cf string) (*builder, error) {
 		ch := make(chan builderBytesize)
 		chs[i] = ch
 		go func(b *builder, ch chan builderBytesize) {
-			bytes, err := uncachedBytes(c, b, t, cf)
+			bytes, err := uncachedBytes(c, b, v)
 			ch <- builderBytesize{
 				builder:  b,
 				bytesize: bytes,
@@ -106,8 +107,8 @@ func selectByUncachedBytes(bs []*builder, t, cf string) (*builder, error) {
 	return b, nil
 }
 
-func uncachedBytes(c *http.Client, b *builder, t, cf string) (int64, error) {
-	resp, err := c.Get(b.name.String() + "/uncachedBytes?t=" + t + "&cachefrom=" + cf)
+func uncachedBytes(c *http.Client, b *builder, v url.Values) (int64, error) {
+	resp, err := c.Get(b.name.String() + "/uncachedBytes?" + v.Encode())
 	if err != nil {
 		return 0, fmt.Errorf("rpc for uncached bytes failed: %s", err)
 	}
@@ -156,7 +157,7 @@ func (s *dispatcher) recycle(b *builder) {
 	}(b, t)
 }
 
-func (s *dispatcher) selectWorker(c clientID, t string, cf string) *builder {
+func (s *dispatcher) selectWorker(c clientID, v url.Values) *builder {
 
 	for {
 
@@ -168,7 +169,7 @@ func (s *dispatcher) selectWorker(c clientID, t string, cf string) *builder {
 
 		s.mutex.Lock()
 
-		b, err := s.findScheduleable(c, t, cf)
+		b, err := s.findScheduleable(c, v)
 		if err != nil {
 			log.Printf("failed to select builder: %s\n", err)
 		}
