@@ -34,6 +34,7 @@ func save(tags []*tag, branches []string) {
 	}
 	for _, b := range branches {
 		if b == "master" {
+			saveCommand(tags[0], cachedLatestFilename(tags[0]))
 			continue
 		}
 		saveCommand(tags[0], cachedBranchFilename(tags[0], b))
