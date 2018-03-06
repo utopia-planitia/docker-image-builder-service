@@ -150,24 +150,28 @@ func (s *dispatcher) recycle(b *builder) {
 		if b.lastestUse != t {
 			return
 		}
-		log.Printf("recycled worker %s\n", b.name)
-		s.mutex.Lock()
+		log.Printf("worker can be recycled: %s\n", b.name)
 		s.cond.Broadcast()
-		s.mutex.Unlock()
+		log.Printf("broadcasted 'recycled worker'\n")
 	}(b, t)
 }
 
 func (s *dispatcher) selectWorker(c clientID, v url.Values) *builder {
 
-	for {
+	b, ok := s.reselect(c)
+	if ok {
+		log.Printf("reselected worker %s for client %s\n", b.name, c)
+		return b
+	}
 
+	s.cond.L.Lock()
+	for {
 		b, ok := s.reselect(c)
 		if ok {
 			log.Printf("reselected worker %s for client %s\n", b.name, c)
+			s.cond.L.Unlock()
 			return b
 		}
-
-		s.mutex.Lock()
 
 		b, err := s.findScheduleable(c, v)
 		if err != nil {
@@ -175,11 +179,12 @@ func (s *dispatcher) selectWorker(c clientID, v url.Values) *builder {
 		}
 		if b != nil {
 			log.Printf("selected worker %s for client %s\n", b.name, c)
-			s.mutex.Unlock()
+			s.cond.L.Unlock()
 			return b
 		}
 
 		log.Printf("waiting for worker to become free\n")
 		s.cond.Wait()
+		log.Printf("worker became free\n")
 	}
 }

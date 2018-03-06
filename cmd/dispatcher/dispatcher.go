@@ -12,7 +12,6 @@ import (
 
 type dispatcher struct {
 	builders []*builder
-	mutex    *sync.Mutex
 	cond     *sync.Cond
 }
 
@@ -36,7 +35,6 @@ func newDispatcher(endpoints []*url.URL, cpu, memory *int64, addr *string) *http
 
 	s := &dispatcher{
 		builders: builders,
-		mutex:    m,
 		cond:     c,
 	}
 
