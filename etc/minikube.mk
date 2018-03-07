@@ -61,6 +61,7 @@ go-test: ##@testing Runs go (unit) tests.
 
 .PHONY: deploy
 deploy: ##@development Deploys the current code.
+	docker build -f docker/devtools/Dockerfile   -t utopiaplanitia/docker-image-builder-devtools:latest .
 	docker build -f docker/builder/Dockerfile    -t utopiaplanitia/docker-image-builder-worker:latest .
 	docker build -f docker/dispatcher/Dockerfile -t utopiaplanitia/docker-image-builder-dispatcher:latest .
 	kubectl apply -f kubernetes/namespace.yaml -f kubernetes
@@ -68,7 +69,7 @@ deploy: ##@development Deploys the current code.
 
 .PHONY: build-push
 build-push: ##@release Build and push the images.
-	docker build -f docker/devtools/Dockerfile  -t utopiaplanitia/docker-image-builder-devtools:latest .
+	docker build -f docker/devtools/Dockerfile   -t utopiaplanitia/docker-image-builder-devtools:latest .
 	docker build -f docker/builder/Dockerfile    -t utopiaplanitia/docker-image-builder-worker:latest .
 	docker build -f docker/dispatcher/Dockerfile -t utopiaplanitia/docker-image-builder-dispatcher:latest .
 	docker push utopiaplanitia/docker-image-builder-devtools:latest
