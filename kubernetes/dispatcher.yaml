@@ -13,6 +13,7 @@ spec:
       containers:
         - name: dispatcher
           image: utopiaplanitia/docker-image-builder-dispatcher:latest
+          imagePullPolicy: Never
           args:
             - --workers=http://builder-0.builder.container-image-builder.svc.cluster.local:2375,http://builder-1.builder.container-image-builder.svc.cluster.local:2375
           ports:

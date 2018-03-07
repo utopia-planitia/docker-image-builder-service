@@ -13,6 +13,7 @@ spec:
       containers:
         - name: devtools
           image: utopiaplanitia/docker-image-builder-devtools:latest
+          imagePullPolicy: Never
           args:
             - sh
             - -c
