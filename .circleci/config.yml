@@ -78,6 +78,7 @@ jobs:
       - run:
           name: e2e test
           command: |
+            kubectl get po --all-namespaces=true
             docker pull alpine:3.7
             docker save alpine:3.7 -o alpine37.tar
             make e2e-test
