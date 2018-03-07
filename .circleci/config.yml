@@ -73,6 +73,7 @@ jobs:
       - run:
           name: go test
           command: |
+            go get -t ./...
             make go-test
       - run:
           name: e2e test
