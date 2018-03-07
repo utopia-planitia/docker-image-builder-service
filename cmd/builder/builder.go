@@ -54,7 +54,6 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	b.docker.ServeHTTP(w, r)
-	return
 }
 
 func (b *builder) build(w http.ResponseWriter, r *http.Request) {
