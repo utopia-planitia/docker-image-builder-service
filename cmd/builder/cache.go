@@ -7,16 +7,16 @@ import (
 	"strings"
 )
 
+const masterBranch = "master"
+
 func load(tags []*tag, branches []string) {
 	log.Printf("loading tags: %s / branches %s", tags, branches)
-	if len(tags) != 0 {
-		for _, t := range tags {
-			loadCommand(t, cachedLatestFilename(t))
-		}
+	for _, t := range tags {
+		loadCommand(t, cachedLatestFilename(t))
 	}
 
 	for _, b := range branches {
-		if b == "master" {
+		if b == masterBranch {
 			continue
 		}
 		for _, t := range tags {
@@ -32,7 +32,7 @@ func save(tags []*tag, branch string) {
 			saveCommand(t, cachedLatestFilename(t))
 		}
 	}
-	if branch == "master" {
+	if branch == masterBranch {
 		for _, t := range tags {
 			saveCommand(t, cachedLatestFilename(t))
 		}

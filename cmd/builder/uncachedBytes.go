@@ -26,30 +26,18 @@ func uncachedBytes(w http.ResponseWriter, r *http.Request) {
 
 	var bytes uint64
 
-	if len(tags) != 0 {
-		uncached, err := calculateUncachedBytes(tags[0], cachedLatestFilename(tags[0]))
-		if err != nil {
-			log.Printf("failed to calculate uncached bytes for tag %s: %s\n", tags[0], err)
-			bytes = math.MaxInt64
-		}
-		if bytes != math.MaxInt64 {
-			bytes += uncached
-		}
+	for _, t := range tags {
+		f := cachedLatestFilename(t)
+		bytes = addUncachedBytes(bytes, t, f)
 	}
 
 	for _, b := range cacheFromBranches {
-		if b == "master" {
+		if b == masterBranch {
 			continue
 		}
 		for _, t := range tags {
-			uncached, err := calculateUncachedBytes(t, cachedBranchFilename(t, b))
-			if err != nil {
-				log.Printf("failed to calculate uncached bytes for branch %s / tag %s: %s\n", b, tags[0], err)
-				bytes = math.MaxInt64
-			}
-			if bytes != math.MaxInt64 {
-				bytes += uncached
-			}
+			f := cachedBranchFilename(t, b)
+			bytes = addUncachedBytes(bytes, t, f)
 		}
 	}
 
@@ -59,20 +47,19 @@ func uncachedBytes(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func uncachedBytesCacheFrom(cf []string, t *tag) (uint64, error) {
-	var bytes uint64
-	for _, e := range cf {
-		f := cachedBranchFilename(t, e)
-		b, err := calculateUncachedBytes(t, f)
-		if err != nil {
-			return 0, err
-		}
-		bytes += b
+func addUncachedBytes (bytes uint64, t fmt.Stringer, f filename) uint64 {
+	uncached, err := calculateUncachedBytes(t, f)
+	if err != nil {
+		log.Printf("failed to calculate uncached bytes tag %s with filename %s: %s\n", t, f, err)
+		bytes = math.MaxInt64
 	}
-	return bytes, nil
+	if bytes != math.MaxInt64 {
+		bytes += uncached
+	}
+	return bytes
 }
 
-func calculateUncachedBytes(t *tag, f filename) (uint64, error) {
+func calculateUncachedBytes(t fmt.Stringer, f filename) (uint64, error) {
 	/* #nosec */
 	output, err := exec.Command("uncachedBytes", t.String(), string(f)).CombinedOutput()
 	if err != nil {
