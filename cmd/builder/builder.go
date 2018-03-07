@@ -49,12 +49,16 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("requested path: %s\n", r.URL)
 
-	if !buildPath.MatchString(r.URL.Path) {
-		b.docker.ServeHTTP(w, r)
-		return
+	if buildPath.MatchString(r.URL.Path) {
+		b.build(w, r)
 	}
 
-	tags, branches, err := parseTagsAndBranches(r)
+	b.docker.ServeHTTP(w, r)
+	return
+}
+
+func (b *builder) build(w http.ResponseWriter, r *http.Request) {
+	tags, cacheFromBranches, currentBranch, err := parseTagsAndBranches(r)
 	if err != nil {
 		log.Printf("failed to parse tags and branches from request: %s\n", err)
 	}
@@ -63,7 +67,7 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 	values.Del("cachefrom")
 	r.URL.RawQuery = values.Encode()
 
-	load(tags, branches)
+	load(tags, cacheFromBranches)
 	b.docker.ServeHTTP(w, r)
-	save(tags, branches)
+	save(tags, currentBranch)
 }

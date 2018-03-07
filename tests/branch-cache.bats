@@ -9,7 +9,7 @@ setup() {
   docker load -i alpine37.tar >&2
 
   export DOCKER_HOST=tcp://builder-0.builder:2375
-  docker build --build-arg version="$DATE" --cache-from branch=$DATE -t test:$DATE tests/example-build >&2
+  docker build --build-arg version="$DATE" --cache-from currentBranch=$DATE -t test:$DATE tests/example-build >&2
   export DOCKER_HOST=tcp://builder-1.builder:2375
 }
 
