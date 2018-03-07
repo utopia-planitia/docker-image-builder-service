@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func parseTagsAndBranches(r *http.Request) ([]*tag, []string, error) {
+func parseTagsAndBranches(r *http.Request) ([]*tag, []string, string, error) {
 
 	tags := []*tag{}
 	for _, t := range r.URL.Query()["t"] {
@@ -17,18 +17,19 @@ func parseTagsAndBranches(r *http.Request) ([]*tag, []string, error) {
 
 	cfjson := r.URL.Query()["cachefrom"]
 	if len(cfjson) == 0 {
-		return tags, nil, nil
+		return tags, nil, "", nil
 	}
 	if len(cfjson) > 1 {
-		return nil, nil, errors.New("cachefrom parameter is set multiple times")
+		return nil, nil, "", errors.New("cachefrom parameter is set multiple times")
 	}
 	cf, err := decodeCachefromJSON(cfjson[0])
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to decode cache from json: %s", err)
+		return nil, nil, "", fmt.Errorf("failed to decode cache from json: %s", err)
 	}
-	branches := filterBranches(cf)
+	cacheFromBranches := filterCacheFromBranches(cf)
+	currentBranch := filterCurrentBranch(cf)
 
-	return tags, branches, nil
+	return tags, cacheFromBranches, currentBranch, nil
 }
 
 func decodeCachefromJSON(cf string) ([]string, error) {
@@ -42,7 +43,7 @@ func decodeCachefromJSON(cf string) ([]string, error) {
 	return l, nil
 }
 
-func filterBranches(cf []string) []string {
+func filterCacheFromBranches(cf []string) []string {
 	var branches []string
 	for _, e := range cf {
 		if strings.HasPrefix(e, "branch=") {
@@ -50,4 +51,13 @@ func filterBranches(cf []string) []string {
 		}
 	}
 	return branches
+}
+
+func filterCurrentBranch(cf []string) string {
+	for _, e := range cf {
+		if strings.HasPrefix(e, "currentBranch=") {
+			return e[len("currentBranch="):]
+		}
+	}
+	return ""
 }

@@ -8,8 +8,11 @@ import (
 )
 
 func load(tags []*tag, branches []string) {
+	log.Printf("loading tags: %s / branches %s", tags, branches)
 	if len(tags) != 0 {
-		loadCommand(tags[0], cachedLatestFilename(tags[0]))
+		for _, t := range tags {
+			loadCommand(t, cachedLatestFilename(t))
+		}
 	}
 
 	for _, b := range branches {
@@ -22,22 +25,20 @@ func load(tags []*tag, branches []string) {
 	}
 }
 
-func save(tags []*tag, branches []string) {
+func save(tags []*tag, branch string) {
+	log.Printf("saving tags: %s / currentBranch %s", tags, branch)
 	for _, t := range tags {
-		if t.version != "latest" {
-			continue
+		if t.version == "latest" {
+			saveCommand(t, cachedLatestFilename(t))
 		}
-		saveCommand(t, cachedLatestFilename(t))
 	}
-	if len(tags) == 0 {
-		return
-	}
-	for _, b := range branches {
-		if b == "master" {
-			saveCommand(tags[0], cachedLatestFilename(tags[0]))
-			continue
+	if branch == "master" {
+		for _, t := range tags {
+			saveCommand(t, cachedLatestFilename(t))
 		}
-		saveCommand(tags[0], cachedBranchFilename(tags[0], b))
+	}
+	for _, t := range tags {
+		saveCommand(t, cachedBranchFilename(t, branch))
 	}
 }
 

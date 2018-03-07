@@ -17,7 +17,7 @@ func uncachedBytes(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("requested path: %s\n", r.URL)
 
-	tags, branches, err := parseTagsAndBranches(r)
+	tags, cacheFromBranches, _, err := parseTagsAndBranches(r)
 	if err != nil {
 		log.Printf("failed to parse tags and branches from request: %s\n", err)
 		w.WriteHeader(http.StatusUnprocessableEntity)
@@ -37,7 +37,7 @@ func uncachedBytes(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	for _, b := range branches {
+	for _, b := range cacheFromBranches {
 		if b == "master" {
 			continue
 		}
