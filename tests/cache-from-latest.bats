@@ -9,8 +9,8 @@ setup() {
   docker pull alpine:3.7
 }
 
-@test "use shared build cache" {
-  run docker build --memory-swap=-1 --build-arg version="$DATE" -t test:latest tests/example-build
+@test "cache from :latest tagged image" {
+  run docker build --memory-swap=-1 --build-arg version="$DATE" -t test:$DATE tests/example-build
   [ "$status" -eq 0 ]
   [ "${lines[7]}" = " ---> Using cache" ]
   [ "${lines[10]}" = " ---> Using cache" ]
