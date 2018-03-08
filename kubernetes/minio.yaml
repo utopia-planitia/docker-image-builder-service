@@ -38,6 +38,7 @@ metadata:
   name: minio
   namespace: container-image-builder
 spec:
+  clusterIP: None
   ports:
     - port: 9000
   selector:

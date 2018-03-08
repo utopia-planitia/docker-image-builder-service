@@ -33,6 +33,7 @@ metadata:
   name: docker
   namespace: container-image-builder
 spec:
+  clusterIP: None
   ports:
     - port: 2375
   selector:
