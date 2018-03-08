@@ -67,7 +67,7 @@ func (b *builder) build(w http.ResponseWriter, r *http.Request) {
 	values.Set("pull", "1")
 	r.URL.RawQuery = values.Encode()
 
-	load(tags, cacheFromBranches)
+	load(tags, cacheFromBranches, currentBranch)
 	b.docker.ServeHTTP(w, r)
 	save(tags, currentBranch)
 }

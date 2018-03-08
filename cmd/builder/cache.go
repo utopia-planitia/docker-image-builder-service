@@ -9,10 +9,11 @@ import (
 
 const masterBranch = "master"
 
-func load(tags []*tag, branches []string) {
+func load(tags []*tag, branches []string, currentBranch string) {
 	log.Printf("loading tags: %s / branches %s", tags, branches)
 	for _, t := range tags {
 		loadCommand(t, cachedLatestFilename(t))
+		loadCommand(t, cachedBranchFilename(t, currentBranch))
 	}
 
 	for _, b := range branches {

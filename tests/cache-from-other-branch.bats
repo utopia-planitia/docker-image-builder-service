@@ -9,7 +9,7 @@ setup() {
   docker pull alpine:3.7
 }
 
-@test "use shared branch build cache" {
+@test "use cache from other branch" {
   run docker build --memory-swap=-1 --build-arg version="$DATE" --cache-from branch=$DATE -t test:$DATE tests/example-build
   [ "$status" -eq 0 ]
   [ "${lines[7]}" = " ---> Using cache" ]
