@@ -30,24 +30,24 @@ var tagTests = []struct {
 func TestNewTag(t *testing.T) {
 	for _, tt := range tagTests {
 		tag := newTag(tt.in)
-		if !compare(tag, tt.out) {
-			t.Errorf("newTag(%q) => %q, want %q", tt.in, debugPrint(tag), debugPrint(tt.out))
+		if !tag.equals(tt.out) {
+			t.Errorf("newTag(%q) => %q, want %q", tt.in, tag.debugPrint(), tt.out.debugPrint())
 		}
 	}
 }
 
-func debugPrint(t *tag) string {
+func (t *tag) debugPrint() string {
 	return "{image: " + t.image + ", version: " + t.version + "}"
 }
 
-func compare(a, b *tag) bool {
-	if &a == &b {
+func (t *tag) equals(b *tag) bool {
+	if &t == &b {
 		return true
 	}
-	if strings.Compare(a.image, b.image) != 0 {
+	if strings.Compare(t.image, b.image) != 0 {
 		return false
 	}
-	if strings.Compare(a.version, b.version) != 0 {
+	if strings.Compare(t.version, b.version) != 0 {
 		return false
 	}
 	return true
