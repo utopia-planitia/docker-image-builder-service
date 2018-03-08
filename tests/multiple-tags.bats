@@ -1,7 +1,7 @@
 
 setup() {
   export DATE=$(date +%s%N)
-  docker pull alpine:3.7
+  docker pull alpine:3.7 >&2
 }
 
 @test "mutiple tags" {
