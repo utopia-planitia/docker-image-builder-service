@@ -76,10 +76,13 @@ jobs:
             go get -t ./...
             make go-test
       - run:
-          name: e2e test
+          name: end-to-end test
           command: |
-            kubectl get po --all-namespaces=true
-            make e2e-test
+            make end-to-end-test
+      - run:
+          name: queue test
+          command: |
+            make queue-test
       - run:
           name: lint bash
           command: |

@@ -16,10 +16,15 @@ cli: ##@development Opens a command line interface with development tools.
 .PHONY: test
 test: ##@testing Runs all tests.
 	@$(MAKE) go-test
-	@$(MAKE) e2e-test
+	@$(MAKE) end-to-end-test
+	@$(MAKE) queue-test
 
-.PHONY: e2e-test
-e2e-test: ##@testing Runs end to end tests.
+.PHONY: go-test
+go-test: ##@testing Runs go (unit) tests.
+	go test -race ./...
+
+.PHONY: end-to-end-test
+end-to-end-test: ##@testing Runs end to end tests.
 	@docker build -q -f docker/devtools/Dockerfile -t utopiaplanitia/docker-image-builder-devtools:latest .
 	@docker run -ti --rm \
 		--dns 10.96.0.10 --dns-search container-image-builder.svc.cluster.local \
@@ -32,9 +37,10 @@ e2e-test: ##@testing Runs end to end tests.
 		-v $(PWD):/project -w /project \
 		utopiaplanitia/docker-image-builder-devtools:latest bats tests
 
-.PHONY: go-test
-go-test: ##@testing Runs go (unit) tests.
-	go test -race ./...
+.PHONY: queue-test
+queue-test: ##@testing Runs more parallel builds then workers
+	@docker build -q -f docker/devtools/Dockerfile -t utopiaplanitia/docker-image-builder-devtools:latest .
+	./etc/queue-test.sh
 
 .PHONY: deploy
 deploy: ##@development Deploys the current code.
