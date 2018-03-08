@@ -5,6 +5,15 @@ setup() {
   docker build --build-arg version="$DATE" tests/example-build >&2
 }
 
+teardown () {
+  if [ "$status" -eq 0 ]; then
+    echo teardown log
+    echo "status: $status"
+    printf '%s\n' "${my_array[@]}"
+    echo teardown done
+  fi
+}
+
 @test "reconnect to same builder" {
   run docker build --memory-swap=-1 --build-arg version="$DATE" tests/example-build
   [ "$status" -eq 0 ]

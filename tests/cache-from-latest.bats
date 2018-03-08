@@ -9,6 +9,15 @@ setup() {
   docker pull alpine:3.7 >&2
 }
 
+teardown () {
+  if [ "$status" -eq 0 ]; then
+    echo teardown log
+    echo "status: $status"
+    printf '%s\n' "${my_array[@]}"
+    echo teardown done
+  fi
+}
+
 @test "cache from :latest tagged image" {
   run docker build --memory-swap=-1 --build-arg version="$DATE" -t test:$DATE tests/example-build
   [ "$status" -eq 0 ]

@@ -1,4 +1,14 @@
 
+
+teardown () {
+  if [ "$status" -eq 0 ]; then
+    echo teardown log
+    echo "status: $status"
+    printf '%s\n' "${my_array[@]}"
+    echo teardown done
+  fi
+}
+
 @test "get docker client and server version" {
   run docker version
   [ "$status" -eq 0 ]
