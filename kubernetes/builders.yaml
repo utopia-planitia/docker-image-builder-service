@@ -72,3 +72,7 @@ spec:
           livenessProbe:
             tcpSocket:
               port: 2376
+          readinessProbe:
+            httpGet:
+              path: /_ping
+              port: 2376
