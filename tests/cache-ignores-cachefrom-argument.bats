@@ -1,4 +1,6 @@
 
+load test_helper
+
 setup() {
   export DATE=$(date +%s%N)
 
@@ -8,15 +10,6 @@ setup() {
   export DOCKER_HOST=tcp://builder-1.builder:2375
   docker pull alpine:3.7 >&2
   docker pull busybox >&2
-}
-
-teardown () {
-  if [ "$status" -eq 0 ]; then
-    echo teardown log
-    echo "status: $status"
-    printf '%s\n' "${my_array[@]}"
-    echo teardown done
-  fi
 }
 
 @test "cache from :latest tagged image, ignoring --cachefrom image" {
