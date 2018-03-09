@@ -65,6 +65,7 @@ func (b *builder) build(w http.ResponseWriter, r *http.Request) {
 	values := r.URL.Query()
 	values.Del("cachefrom")
 	values.Set("pull", "1")
+	values.Set("rm", "0")
 	r.URL.RawQuery = values.Encode()
 
 	load(tags, cacheFromBranches, currentBranch)
