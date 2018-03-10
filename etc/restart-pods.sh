@@ -2,4 +2,4 @@
 
 kubectl -n container-image-builder delete po --all
 
-source await-pods.sh
+source ./etc/await-pods.sh

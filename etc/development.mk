@@ -19,17 +19,21 @@ deploy: .devtools .dispatcher .worker ##@development Deploys the current code.
 
 .PHONY: redeploy
 redeploy: .devtools-deploy .dispatcher-deploy .worker-deploy ##@development Redeploys changed code.
+	kubectl apply -f kubernetes/mirror.yaml -f kubernetes/minio.yaml
 	./etc/await-pods.sh
 
-.devtools-deploy: .devtools
+.devtools-deploy: .devtools kubernetes/devtools.yaml
+	kubectl apply -f kubernetes/devtools.yaml
 	kubectl -n container-image-builder delete po -l app=devtools
 	touch .devtools-deploy
 
-.dispatcher-deploy: .dispatcher
+.dispatcher-deploy: .dispatcher kubernetes/dispatcher.yaml
+	kubectl apply -f kubernetes/dispatcher.yaml
 	kubectl -n container-image-builder delete po -l app=dispatcher
 	touch .dispatcher-deploy
 
-.worker-deploy: .worker
+.worker-deploy: .worker kubernetes/builders.yaml
+	kubectl apply -f kubernetes/builders.yaml
 	kubectl -n container-image-builder delete po -l app=builder
 	touch .worker-deploy
 

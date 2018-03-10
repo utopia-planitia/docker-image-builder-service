@@ -64,6 +64,7 @@ spec:
             - --insecure-registry=10.0.0.0/8
             - --insecure-registry=172.16.0.0/12
             - --insecure-registry=192.168.0.0/16
+            - --registry-mirror=http://mirror:5000/
           env:
             - name: DOCKER_DRIVER
               value: overlay2

@@ -24,9 +24,8 @@ spec:
               value: 8Q9U4RBHKKB6HU70SRZ1
             - name: MINIO_SECRET_KEY
               value: oxxT2iqBlW6lgaDVe8ll6mP8z/OSVIUnn9cB4+Q0
-          readinessProbe:
-            httpGet:
-              path: /minio/login
+          livenessProbe:
+            tcpSocket:
               port: 9000
           readinessProbe:
             tcpSocket:

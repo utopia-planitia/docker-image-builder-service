@@ -1,0 +1,40 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: mirror
+  namespace: container-image-builder
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mirror
+    spec:
+      containers:
+        - name: registry
+          image: registry:2.6.2
+          ports:
+            - containerPort: 5000
+              name: registry
+          env:
+            - name: REGISTRY_PROXY_REMOTEURL
+              value: https://registry-1.docker.io
+          livenessProbe:
+            tcpSocket:
+              port: 5000
+          readinessProbe:
+            httpGet:
+              path: /v2/
+              port: 5000
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: mirror
+  namespace: container-image-builder
+spec:
+  clusterIP: None
+  ports:
+    - port: 5000
+  selector:
+    app: mirror
