@@ -12,6 +12,16 @@ for _ in {1..150}; do # timeout for 5 minutes
   sleep 2
 done
 
+echo -n waiting for mirror
+for _ in {1..150}; do # timeout for 5 minutes
+  if kubectl -n container-image-builder -l app=mirror get po | grep Running | grep 1/1 > /dev/null 2>&1; then
+      echo " done"
+      break
+  fi
+  echo -n .
+  sleep 2
+done
+
 echo -n waiting for dispatcher
 for _ in {1..150}; do # timeout for 5 minutes
   if kubectl -n container-image-builder -l app=dispatcher get po | grep Running | grep 1/1 > /dev/null 2>&1; then
