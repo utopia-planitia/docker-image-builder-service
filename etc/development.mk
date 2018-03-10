@@ -17,6 +17,22 @@ deploy: .devtools .dispatcher .worker ##@development Deploys the current code.
 	kubectl apply -f kubernetes/namespace.yaml -f kubernetes
 	./etc/restart-pods.sh
 
+.PHONY: redeploy
+redeploy: .devtools-deploy .dispatcher-deploy .worker-deploy ##@development Redeploys changed code.
+	./etc/await-pods.sh
+
+.devtools-deploy: .devtools
+	kubectl -n container-image-builder delete po -l app=devtools
+	touch .devtools-deploy
+
+.dispatcher-deploy: .dispatcher
+	kubectl -n container-image-builder delete po -l app=dispatcher
+	touch .dispatcher-deploy
+
+.worker-deploy: .worker
+	kubectl -n container-image-builder delete po -l app=builder
+	touch .worker-deploy
+
 .devtools: $(shell find devtools -type f)
 	docker build -t utopiaplanitia/docker-image-builder-devtools:latest devtools
 	touch .devtools
