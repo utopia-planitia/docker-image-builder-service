@@ -10,6 +10,6 @@ WORKDIR /
 COPY --from=minio-client /usr/bin/mc /usr/bin/mc
 COPY --from=docker-client /usr/local/bin/docker /usr/bin/docker
 ENV CACHE_MAX_AGE 864000
-COPY caching-scripts/entrypoint.sh /entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT [ "/entrypoint.sh" ]
 CMD ["/bin/sh"]
