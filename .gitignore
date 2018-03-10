@@ -1,4 +1,4 @@
 /TODO.txt
-.docker-image-builder
-.docker-image-devtools
-.docker-image-dispatcher
+.devtools
+.dispatcher
+.worker

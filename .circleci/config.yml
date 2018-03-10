@@ -88,9 +88,9 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt-get install shellcheck
-            shellcheck etc/*.sh caching-scripts/*.sh
+            make lint-bash
       - run:
           name: lint go
           command: |
             go get -t ./...
-            gometalinter ./...
+            make lint-go

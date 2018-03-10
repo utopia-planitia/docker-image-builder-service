@@ -1,6 +1,6 @@
 
 .PHONY: cli
-cli: .docker-image-devtools ##@development Opens a command line interface with development tools.
+cli: .devtools ##@development Opens a command line interface with development tools.
 	docker run -ti --rm \
 		--dns 10.96.0.10 --dns-search container-image-builder.svc.cluster.local \
 		-e DOCKER_HOST=tcp://docker:2375 \
@@ -13,18 +13,18 @@ cli: .docker-image-devtools ##@development Opens a command line interface with d
 		utopiaplanitia/docker-image-builder-devtools:latest sh
 
 .PHONY: deploy
-deploy: .docker-image-devtools .docker-image-builder .docker-image-dispatcher ##@development Deploys the current code.
+deploy: .devtools .dispatcher .worker ##@development Deploys the current code.
 	kubectl apply -f kubernetes/namespace.yaml -f kubernetes
 	./etc/restart-pods.sh
 
-.docker-image-devtools: caching-scripts/entrypoint.sh docker/devtools/Dockerfile
-	docker build -f docker/devtools/Dockerfile  -t utopiaplanitia/docker-image-builder-devtools:latest .
-	touch .docker-image-devtools
+.devtools: $(shell find devtools -type f)
+	docker build -t utopiaplanitia/docker-image-builder-devtools:latest devtools
+	touch .devtools
 
-.docker-image-builder: $(shell find caching-scripts cmd/builder -type f) docker/builder/Dockerfile
-	docker build -f docker/builder/Dockerfile  -t utopiaplanitia/docker-image-builder-worker:latest .
-	touch .docker-image-builder
+.dispatcher: $(shell find dispatcher -type f)
+	docker build -t utopiaplanitia/docker-image-builder-dispatcher:latest dispatcher
+	touch .dispatcher
 
-.docker-image-dispatcher: $(shell find cmd/dispatcher -type f) docker/dispatcher/Dockerfile
-	docker build -f docker/dispatcher/Dockerfile  -t utopiaplanitia/docker-image-builder-dispatcher:latest .
-	touch .docker-image-dispatcher
+.worker: $(shell find worker -type f)
+	docker build -t utopiaplanitia/docker-image-builder-worker:latest worker
+	touch .worker

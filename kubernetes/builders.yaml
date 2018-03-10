@@ -27,11 +27,11 @@ spec:
         app: builder
     spec:
       containers:
-        - name: builder
+        - name: worker
           image: utopiaplanitia/docker-image-builder-worker:latest
           imagePullPolicy: Never
           args:
-            - builder
+            - worker
             - --docker=http://127.0.0.1:2376
           env:
             - name: DOCKER_HOST

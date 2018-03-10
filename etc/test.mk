@@ -10,7 +10,7 @@ go-test: ##@testing Runs go (unit) tests.
 	go test -race ./...
 
 .PHONY: end-to-end-test
-end-to-end-test: .docker-image-devtools ##@testing Runs end to end tests.
+end-to-end-test: .devtools ##@testing Runs end to end tests.
 	@docker run -ti --rm \
 		--dns 10.96.0.10 --dns-search container-image-builder.svc.cluster.local \
 		-e DOCKER_HOST=tcp://docker:2375 \
@@ -23,5 +23,5 @@ end-to-end-test: .docker-image-devtools ##@testing Runs end to end tests.
 		utopiaplanitia/docker-image-builder-devtools:latest bats tests
 
 .PHONY: queue-test
-queue-test: .docker-image-devtools ##@testing Runs more parallel builds then workers
+queue-test: .devtools ##@testing Runs more parallel builds then workers
 	./etc/queue-test.sh
