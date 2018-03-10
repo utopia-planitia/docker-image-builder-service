@@ -2,7 +2,7 @@ FROM minio/mc:RELEASE.2018-02-09T23-07-36Z as minio-client
 
 FROM docker:17.11.0-ce-dind as docker-client
 
-FROM golang:1.9.3-alpine3.7 AS compile
+FROM golang:1.10.0-alpine3.7 AS compile
 WORKDIR /go/src/github.com/utopia-planitia/docker-image-builder/
 RUN apk --no-cache add git
 RUN go get code.cloudfoundry.org/bytefmt
