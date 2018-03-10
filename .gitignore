@@ -1,4 +1,7 @@
 /TODO.txt
 .devtools
+.devtools-deploy
 .dispatcher
+.dispatcher-deploy
 .worker
+.worker-deploy
