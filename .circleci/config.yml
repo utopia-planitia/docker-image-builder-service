@@ -12,7 +12,7 @@ jobs:
       - restore_cache:
           name: restore tools cache
           keys:
-            - tools-v2
+            - tools-v3
       - checkout
       - run:
           name: install kubectl & minikube
@@ -50,7 +50,7 @@ jobs:
             cd docker-image-cache
             ../etc/docker-image.sh minio/minio:RELEASE.2018-02-09T22-40-05Z minio-RELEASE.2018-02-09T22-40-05Z
             ../etc/docker-image.sh docker:17.11.0-ce-dind                   docker-17.11.0-ce-dind
-            ../etc/docker-image.sh golang:1.9.3-alpine3.7                   golang-1.9.3-alpine3.7
+            ../etc/docker-image.sh golang:1.10.0-alpine3.7                  golang-1.10.0-alpine3.7
             ../etc/docker-image.sh alpine:3.7                               alpine-3.7
       - run:
           name: wait for minikube
@@ -58,7 +58,7 @@ jobs:
             make await
       - save_cache:
           name: save tools cache
-          key: tools-v2
+          key: tools-v3
           paths:
             - kubectl
             - minikube

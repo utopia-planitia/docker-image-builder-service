@@ -1,4 +1,4 @@
-FROM golang:1.9.3-alpine3.7 AS compile
+FROM golang:1.10.0-alpine3.7 AS compile
 WORKDIR /go/src/github.com/utopia-planitia/docker-image-builder/
 COPY . dispatcher
 RUN CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./dispatcher
