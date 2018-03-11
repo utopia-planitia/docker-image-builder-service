@@ -9,14 +9,23 @@ import (
 	"time"
 )
 
-var buildPath *regexp.Regexp
+var (
+	buildPath     *regexp.Regexp
+	containerPath *regexp.Regexp
+)
 
 func init() {
-	b, err := regexp.Compile("^/[^/]*/build")
+	b, err := regexp.Compile("^/([^/]*/)?build")
 	if err != nil {
 		log.Fatalf("failed to prepare pattern matching: %s\n", err)
 	}
 	buildPath = b
+
+	c, err := regexp.Compile("^/([^/]*/)?containers")
+	if err != nil {
+		log.Fatalf("failed to prepare pattern matching: %s\n", err)
+	}
+	containerPath = c
 }
 
 type filename string
@@ -49,11 +58,25 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("requested path: %s\n", r.URL)
 
-	if buildPath.MatchString(r.URL.Path) {
+	if isRequestingContainer(r.URL.Path) {
+		w.WriteHeader(http.StatusForbidden)
+		log.Printf("container use is forbidden: %s\n", r.URL)
+		return
+	}
+
+	if isRequestingBuild(r.URL.Path) {
 		b.build(w, r)
 	}
 
 	b.docker.ServeHTTP(w, r)
+}
+
+func isRequestingContainer(p string) bool {
+	return containerPath.MatchString(p)
+}
+
+func isRequestingBuild(p string) bool {
+	return buildPath.MatchString(p)
 }
 
 func (b *builder) build(w http.ResponseWriter, r *http.Request) {
