@@ -2,9 +2,9 @@
 
 sleep 1
 
-echo -n waiting for minio
+echo -n waiting for mirror
 for _ in {1..150}; do # timeout for 5 minutes
-  if kubectl -n container-image-builder -l app=minio get po | grep Running | grep 1/1 > /dev/null 2>&1; then
+  if kubectl -n container-image-builder -l app=mirror get po | grep Running | grep 1/1 > /dev/null 2>&1; then
       echo " done"
       break
   fi
@@ -12,9 +12,9 @@ for _ in {1..150}; do # timeout for 5 minutes
   sleep 2
 done
 
-echo -n waiting for mirror
+echo -n waiting for cache
 for _ in {1..150}; do # timeout for 5 minutes
-  if kubectl -n container-image-builder -l app=mirror get po | grep Running | grep 1/1 > /dev/null 2>&1; then
+  if kubectl -n container-image-builder -l app=cache get po | grep Running | grep 1/1 > /dev/null 2>&1; then
       echo " done"
       break
   fi

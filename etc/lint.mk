@@ -6,8 +6,8 @@ lint: ##@linting Runs all linters.
 
 .PHONY: lint-bash
 lint-bash: ##@linting Lint Bash scripts.
-	shellcheck etc/*.sh worker/caching-scripts/*.sh devtools/*.sh
+	shellcheck etc/*.sh
 
 .PHONY: lint-go
 lint-go: ##@linting Lint Go code.
-	gometalinter ./...
+	gometalinter --vendor ./...

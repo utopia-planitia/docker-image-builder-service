@@ -21,13 +21,3 @@ spec:
           env:
             - name: DOCKER_HOST
               value: tcp://docker:2375
-            - name: CACHE_ENDPOINT_SERVER
-              value: minio
-            - name: CACHE_ENDPOINT_PORT
-              value: "9000"
-            - name: CACHE_BUCKET
-              value: image-layers
-            - name: CACHE_ACCESS_KEY
-              value: 8Q9U4RBHKKB6HU70SRZ1
-            - name: CACHE_SECRET_KEY
-              value: oxxT2iqBlW6lgaDVe8ll6mP8z/OSVIUnn9cB4+Q0
