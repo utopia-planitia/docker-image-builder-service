@@ -5,7 +5,7 @@ load test_helper
   run docker version
   [ "$status" -eq 0 ]
   [ "${lines[0]}" = "Client:" ]
-  [ "${lines[1]}" = " Version:      17.11.0-ce" ]
+  [ "${lines[1]}" = " Version:	17.12.1-ce" ]
   [ "${lines[7]}" = "Server:" ]
-  [ "${lines[8]}" = " Version:      17.11.0-ce" ]
+  [ "${lines[9]}" = "  Version:	17.12.1-ce" ]
 }

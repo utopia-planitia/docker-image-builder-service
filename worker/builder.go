@@ -1,12 +1,18 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"regexp"
 	"time"
+
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 )
 
 var (
@@ -27,8 +33,6 @@ func init() {
 	}
 	containerPath = c
 }
-
-type filename string
 
 type builder struct {
 	docker *httputil.ReverseProxy
@@ -66,6 +70,7 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 
 	if isRequestingBuild(r.URL.Path) {
 		b.build(w, r)
+		return
 	}
 
 	b.docker.ServeHTTP(w, r)
@@ -80,18 +85,67 @@ func isRequestingBuild(p string) bool {
 }
 
 func (b *builder) build(w http.ResponseWriter, r *http.Request) {
+
 	tags, cacheFromBranches, currentBranch, err := parseTagsAndBranches(r)
 	if err != nil {
 		log.Printf("failed to parse tags and branches from request: %s\n", err)
 	}
 
-	values := r.URL.Query()
-	values.Del("cachefrom")
-	values.Set("pull", "1")
-	values.Set("rm", "0")
-	r.URL.RawQuery = values.Encode()
-
 	load(tags, cacheFromBranches, currentBranch)
+	cacheFromLocalImages(r)
+	log.Printf("docker forwarded request: %v\n", r)
 	b.docker.ServeHTTP(w, r)
 	save(tags, currentBranch)
+}
+
+func cacheFromLocalImages(r *http.Request) {
+
+	values := r.URL.Query()
+
+	values.Set("pull", "1")
+	values.Set("rm", "0")
+
+	if values.Get("t") == "" {
+		values.Set("t", "untagged_"+randStringBytes(32))
+	}
+
+	values.Del("cachefrom")
+	cachefrom, err := json.Marshal(localImages())
+	if err != nil {
+		log.Printf("failed to marshal local images: %s\n", err)
+	}
+	if cachefrom != nil {
+		values.Set("cachefrom", string(cachefrom))
+		log.Printf("added localimage to cachefrom: %s\n", string(cachefrom))
+	}
+
+	r.URL.RawQuery = values.Encode()
+}
+
+const letterBytes = "0123465789abcdefghijklmnopqrstuvwxyz"
+
+func randStringBytes(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
+}
+
+func localImages() []string {
+	cli, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		log.Printf("failed to pull image: %s", err)
+		return nil
+	}
+
+	images, err := cli.ImageList(context.Background(), types.ImageListOptions{})
+	if err != nil {
+		log.Printf("failed list images: %s", err)
+	}
+	tags := []string{}
+	for _, image := range images {
+		tags = append(tags, image.RepoTags...)
+	}
+	return tags
 }

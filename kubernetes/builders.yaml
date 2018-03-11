@@ -35,17 +35,9 @@ spec:
             - --docker=http://127.0.0.1:2376
           env:
             - name: DOCKER_HOST
-              value: tcp://127.0.0.1:2375
-            - name: CACHE_ENDPOINT_SERVER
-              value: minio
-            - name: CACHE_ENDPOINT_PORT
-              value: "9000"
-            - name: CACHE_BUCKET
-              value: image-layers
-            - name: CACHE_ACCESS_KEY
-              value: 8Q9U4RBHKKB6HU70SRZ1
-            - name: CACHE_SECRET_KEY
-              value: oxxT2iqBlW6lgaDVe8ll6mP8z/OSVIUnn9cB4+Q0
+              value: tcp://127.0.0.1:2376
+            - name: DOCKER_API_VERSION
+              value: "1.35"
           ports:
             - containerPort: 2375
               name: docker
@@ -57,7 +49,7 @@ spec:
               path: /_ping
               port: 2375
         - name: docker
-          image: docker:17.11.0-ce-dind
+          image: docker:17.12.1-ce-dind
           args:
             - dockerd
             - --host=tcp://127.0.0.1:2376
