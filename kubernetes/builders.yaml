@@ -48,6 +48,9 @@ spec:
             httpGet:
               path: /_ping
               port: 2375
+          volumeMounts:
+            - mountPath: /var/lib/docker
+              name: docker
         - name: docker
           image: docker:17.12.1-ce-dind
           args:
@@ -69,3 +72,9 @@ spec:
               command:
                 - docker
                 - version
+          volumeMounts:
+            - mountPath: /var/lib/docker
+              name: docker
+      volumes:
+        - name: docker
+          emptyDir: {}

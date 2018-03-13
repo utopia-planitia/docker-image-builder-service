@@ -78,7 +78,7 @@ func cachedLatestFilename(t *tag) *tag {
 
 func cachedBranchFilename(t *tag, branch string) *tag {
 	return &tag{
-		image:   "cache:5000/" + strings.Replace(t.image, ":", "~", -1),
+		image:   strings.Replace(t.image, ":", "~", -1),
 		version: branch,
 	}
 }
@@ -92,7 +92,7 @@ func loadCommand(remote reference.Reference) {
 	}
 
 	log.Printf("pull image %s", remote.String())
-	response, err := cli.ImagePull(context.Background(), remote.String(), types.ImagePullOptions{RegistryAuth: "Og=="})
+	response, err := cli.ImagePull(context.Background(), "cache:5000/"+remote.String(), types.ImagePullOptions{RegistryAuth: "Og=="})
 	if err != nil {
 		log.Printf("failed to pull image: %s", err)
 		return
@@ -118,14 +118,14 @@ func saveCommand(local, remote reference.Reference) {
 		return
 	}
 
-	log.Printf("tag image %s to %s", local.String(), remote.String())
-	err = cli.ImageTag(context.Background(), local.String(), remote.String())
+	log.Printf("tag image %s to %s", local.String(), "cache:5000/"+remote.String())
+	err = cli.ImageTag(context.Background(), local.String(), "cache:5000/"+remote.String())
 	if err != nil {
 		log.Printf("failed to tag image %s to %s: %s", local, remote, err)
 	}
 
 	log.Printf("push image %s", remote.String())
-	response, err := cli.ImagePush(context.Background(), remote.String(), types.ImagePushOptions{RegistryAuth: "Og=="})
+	response, err := cli.ImagePush(context.Background(), "cache:5000/"+remote.String(), types.ImagePushOptions{RegistryAuth: "Og=="})
 	if err != nil {
 		log.Printf("failed to push image: %s", err)
 		return
