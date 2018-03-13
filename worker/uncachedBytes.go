@@ -3,14 +3,13 @@ package main
 // https://github.com/genuinetools/reg
 
 import (
-	"context"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/client"
 	"github.com/genuinetools/reg/registry"
 	"github.com/genuinetools/reg/repoutils"
 )
@@ -38,6 +37,9 @@ func uncachedBytes(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
+	log.Printf("localLayers: %v\n", localLayers)
+	log.Printf("remoteLayers: %v\n", remoteLayers)
+
 	for _, layer := range localLayers {
 		delete(remoteLayers, layer)
 	}
@@ -55,7 +57,7 @@ func uncachedBytes(w http.ResponseWriter, r *http.Request) {
 
 func remoteLayers(tags []*tag) (map[string]int64, error) {
 
-	r, err := registry.NewInsecure(types.AuthConfig{}, false)
+	r, err := registry.NewInsecure(types.AuthConfig{ServerAddress: "http://cache:5000/"}, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed setup registry client: %s", err)
 	}
@@ -66,7 +68,7 @@ func remoteLayers(tags []*tag) (map[string]int64, error) {
 
 		repo, ref, err := repoutils.GetRepoAndRef(tag.String())
 		if err != nil {
-			log.Printf("failed load manifest %s:%s: %s\n", repo, ref, err)
+			log.Printf("failed parse tag %s: %s\n", tag.String(), err)
 			continue
 		}
 
@@ -77,30 +79,30 @@ func remoteLayers(tags []*tag) (map[string]int64, error) {
 		}
 
 		for _, layer := range manifest.Layers {
+			log.Printf("remote layer %s has size %d\n", string(layer.Digest), layer.Size)
 			layers[string(layer.Digest)] = layer.Size
 		}
+		log.Printf("remote layer %s has size %d\n", string(manifest.Config.Digest), manifest.Config.Size)
+		layers[string(manifest.Config.Digest)] = manifest.Config.Size
 	}
 	return layers, nil
 }
 
 func localLayers() ([]string, error) {
-	cli, err := client.NewClientWithOpts(client.FromEnv)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create docker client: %s", err)
-	}
-	images, err := cli.ImageList(context.Background(), types.ImageListOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("failed list images: %s", err)
-	}
 	layers := []string{}
-	for _, image := range images {
-		history, err := cli.ImageHistory(context.Background(), image.ID)
-		if err != nil {
-			log.Printf("failed get histroy of image %s: %s", image.ID, err)
-		}
-		for _, layer := range history {
-			layers = append(layers, layer.ID)
-		}
+	files, err := ioutil.ReadDir("/var/lib/docker/image/overlay2/distribution/diffid-by-digest/sha256/")
+	if err != nil {
+		return nil, fmt.Errorf("failed list layers: %s", err)
+	}
+	for _, f := range files {
+		layers = append(layers, "sha256:"+f.Name())
+	}
+	files, err = ioutil.ReadDir("/var/lib/docker/image/overlay2/imagedb/content/sha256/")
+	if err != nil {
+		return nil, fmt.Errorf("failed list layers: %s", err)
+	}
+	for _, f := range files {
+		layers = append(layers, "sha256:"+f.Name())
 	}
 	return layers, nil
 }
