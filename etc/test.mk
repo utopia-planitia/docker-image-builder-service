@@ -1,4 +1,6 @@
 
+BATS_TESTS=tests
+
 .PHONY: test
 test: ##@testing Runs all tests.
 	@$(MAKE) go-test
@@ -15,7 +17,7 @@ end-to-end-test: .devtools ##@testing Runs end to end tests.
 		--dns 10.96.0.10 --dns-search container-image-builder.svc.cluster.local \
 		-e DOCKER_HOST=tcp://docker:2375 \
 		-v $(PWD):/project -w /project \
-		utopiaplanitia/docker-image-builder-devtools:latest bats tests
+		utopiaplanitia/docker-image-builder-devtools:latest bats ${BATS_TESTS}
 
 .PHONY: queue-test
 queue-test: .devtools ##@testing Runs more parallel builds then workers
