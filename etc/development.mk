@@ -5,7 +5,7 @@ cli: .devtools ##@development Opens a command line interface with development to
 		--dns 10.96.0.10 --dns-search container-image-builder.svc.cluster.local \
 		-e DOCKER_HOST=tcp://docker:2375 \
 		-v $(PWD):/project -w /project \
-		utopiaplanitia/docker-image-builder-devtools:latest sh
+		utopiaplanitia/docker-image-builder-devtools:latest bash
 
 .PHONY: deploy
 deploy: .devtools .dispatcher .worker ##@development Deploys the current code.
