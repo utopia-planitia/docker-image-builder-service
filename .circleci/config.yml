@@ -52,7 +52,7 @@ jobs:
             ../etc/docker-image.sh docker:17.12.1-ce-dind  docker-17.12.1-ce-dind
             ../etc/docker-image.sh golang:1.10.0-alpine3.7 golang-1.10.0-alpine3.7
             ../etc/docker-image.sh alpine:3.7              alpine-3.7
-            ../etc/docker-image.sh ubuntu:16:04            ubuntu-16.04
+            ../etc/docker-image.sh ubuntu:16.04            ubuntu-16.04
       - run:
           name: wait for minikube
           command: |

@@ -151,7 +151,7 @@ func (s *dispatcher) recycle(b *builder) {
 			return
 		}
 		log.Printf("worker can be recycled: %s\n", b.name)
-		s.cond.Broadcast()
+		s.cond.Signal()
 		log.Printf("broadcasted 'recycled worker'\n")
 	}(b, t)
 }

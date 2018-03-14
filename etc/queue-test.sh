@@ -3,9 +3,13 @@
 set -euo pipefail
 #set -x
 
+echo wait for workers to cool down
+sleep 10
+echo starting 5 builds
+
 START=$(date +%s)
 
-for i in {1..3}
+for i in {1..5}
 do
     DATE=$(date +%s%N)
     docker run --rm \
@@ -24,16 +28,16 @@ END=$(date +%s)
 
 DELAY=$((END - START))
 echo "build took $DELAY seconds"
-if [ "$DELAY" -lt 9 ]; then
+if [ "$DELAY" -lt 20 ]; then
   echo "build was to fast"
-  for i in {1..3}
+  for i in {1..5}
   do
       echo "cat $i.log"
       cat $i.log
   done
   exit 1
 fi
-if [ "$DELAY" -gt 30 ]; then
+if [ "$DELAY" -gt 40 ]; then
   echo "build was to slow"
   exit 2
 fi
