@@ -43,5 +43,3 @@ for i in {0..1}; do
     sleep 2
   done
 done
-
-sleep 5
