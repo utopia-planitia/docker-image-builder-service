@@ -13,6 +13,7 @@ load test_helper
 
   # build on builder 1
   export DOCKER_HOST=tcp://builder-0.builder:2375
+  docker pull alpine:3.7
   run docker build --build-arg version="$DATE" -t uncached-$DATE tests/example-build
   [ "$status" -eq 0 ]
 
@@ -26,6 +27,7 @@ load test_helper
 
   # build on builder 0
   export DOCKER_HOST=tcp://builder-1.builder:2375
+  docker pull alpine:3.7
   run docker build --build-arg version="$DATE" -t uncached-$DATE tests/example-build
   [ "$status" -eq 0 ]
   [ "${lines[7]}" = " ---> Using cache" ]
