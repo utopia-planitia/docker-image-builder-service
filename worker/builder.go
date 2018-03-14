@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"math/rand"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -105,31 +105,19 @@ func cacheFromLocalImages(r *http.Request) {
 	values.Set("pull", "1")
 	values.Set("rm", "0")
 
-	if values.Get("t") == "" {
-		values.Set("t", "untagged_"+randStringBytes(32))
-	}
-
 	values.Del("cachefrom")
-	cachefrom, err := json.Marshal(localImages())
-	if err != nil {
-		log.Printf("failed to marshal local images: %s\n", err)
-	}
-	if cachefrom != nil {
-		values.Set("cachefrom", string(cachefrom))
-		log.Printf("added localimage to cachefrom: %s\n", string(cachefrom))
+	if values["t"] != nil {
+		cachefrom, err := json.Marshal(localImages())
+		if err != nil {
+			log.Printf("failed to marshal local images: %s\n", err)
+		}
+		if cachefrom != nil {
+			values.Set("cachefrom", string(cachefrom))
+			log.Printf("added localimage to cachefrom: %s\n", string(cachefrom))
+		}
 	}
 
 	r.URL.RawQuery = values.Encode()
-}
-
-const letterBytes = "0123465789abcdefghijklmnopqrstuvwxyz"
-
-func randStringBytes(n int) string {
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = letterBytes[rand.Intn(len(letterBytes))]
-	}
-	return string(b)
 }
 
 func localImages() []string {
@@ -145,7 +133,11 @@ func localImages() []string {
 	}
 	tags := []string{}
 	for _, image := range images {
-		tags = append(tags, image.RepoTags...)
+		for _, name := range image.RepoTags {
+			if strings.HasPrefix(name, "cache:5000/") {
+				tags = append(tags, name)
+			}
+		}
 	}
 	return tags
 }
