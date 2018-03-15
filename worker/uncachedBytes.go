@@ -14,7 +14,7 @@ import (
 	"github.com/genuinetools/reg/repoutils"
 )
 
-func uncachedBytes(w http.ResponseWriter, r *http.Request) {
+func uncachedSize(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("requested path: %s\n", r.URL)
 
