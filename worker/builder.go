@@ -90,6 +90,12 @@ func (b *builder) build(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("failed to parse tags and branches from request: %s\n", err)
 	}
+	if len(tags) == 0 {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte("untagged builds are not supported"))
+		log.Printf("no tags set: %s\n", r.URL)
+		return
+	}
 
 	load(tags, cacheFromBranches, currentBranch)
 	cacheFromLocalImages(r)
@@ -106,15 +112,13 @@ func cacheFromLocalImages(r *http.Request) {
 	values.Set("rm", "0")
 
 	values.Del("cachefrom")
-	if values["t"] != nil {
-		cachefrom, err := json.Marshal(localImages())
-		if err != nil {
-			log.Printf("failed to marshal local images: %s\n", err)
-		}
-		if cachefrom != nil {
-			values.Set("cachefrom", string(cachefrom))
-			log.Printf("added localimage to cachefrom: %s\n", string(cachefrom))
-		}
+	cachefrom, err := json.Marshal(localImages())
+	if err != nil {
+		log.Printf("failed to marshal local images: %s\n", err)
+	}
+	if cachefrom != nil {
+		values.Set("cachefrom", string(cachefrom))
+		log.Printf("added localimage to cachefrom: %s\n", string(cachefrom))
 	}
 
 	r.URL.RawQuery = values.Encode()
