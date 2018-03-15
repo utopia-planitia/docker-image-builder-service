@@ -18,7 +18,7 @@ do
         -e DOCKER_HOST=tcp://docker:2375 \
         -v "$(pwd):/project" -w /project \
         utopiaplanitia/docker-image-builder-devtools:latest \
-        docker build --build-arg version="$DATE" tests/example-build \
+        docker build --build-arg version="$DATE" -t "queue-test-$DATE" tests/example-build \
         > $i.log \
         &
 done
