@@ -1,18 +1,13 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"regexp"
-	"strings"
 	"time"
-
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/client"
 )
 
 var (
@@ -98,13 +93,13 @@ func (b *builder) build(w http.ResponseWriter, r *http.Request) {
 	}
 
 	load(tags, cacheFromBranches, currentBranch)
-	cacheFromLocalImages(r)
+	cacheFromLocalImages(r, cacheSources(tags, cacheFromBranches, currentBranch))
 	log.Printf("docker forwarded request: %v\n", r)
 	b.docker.ServeHTTP(w, r)
 	save(tags, currentBranch)
 }
 
-func cacheFromLocalImages(r *http.Request) {
+func cacheFromLocalImages(r *http.Request, tags []*tag) {
 
 	values := r.URL.Query()
 
@@ -112,7 +107,12 @@ func cacheFromLocalImages(r *http.Request) {
 	values.Set("rm", "0")
 
 	values.Del("cachefrom")
-	cachefrom, err := json.Marshal(localImages())
+
+	possibleCaches := []string{}
+	for _, tag := range tags {
+		possibleCaches = append(possibleCaches, "cache:5000/"+tag.String())
+	}
+	cachefrom, err := json.Marshal(possibleCaches)
 	if err != nil {
 		log.Printf("failed to marshal local images: %s\n", err)
 	}
@@ -122,26 +122,4 @@ func cacheFromLocalImages(r *http.Request) {
 	}
 
 	r.URL.RawQuery = values.Encode()
-}
-
-func localImages() []string {
-	cli, err := client.NewClientWithOpts(client.FromEnv)
-	if err != nil {
-		log.Printf("failed to pull image: %s", err)
-		return nil
-	}
-
-	images, err := cli.ImageList(context.Background(), types.ImageListOptions{})
-	if err != nil {
-		log.Printf("failed list images: %s", err)
-	}
-	tags := []string{}
-	for _, image := range images {
-		for _, name := range image.RepoTags {
-			if strings.HasPrefix(name, "cache:5000/") {
-				tags = append(tags, name)
-			}
-		}
-	}
-	return tags
 }
