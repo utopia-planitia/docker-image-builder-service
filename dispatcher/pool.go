@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -156,12 +157,12 @@ func (s *dispatcher) recycle(b *builder) {
 	}(b, t)
 }
 
-func (s *dispatcher) selectWorker(c clientID, v url.Values) *builder {
+func (s *dispatcher) selectWorker(cxt context.Context, c clientID, v url.Values) (*builder, error) {
 
 	b, ok := s.reselect(c)
 	if ok {
 		log.Printf("reselected worker %s for client %s\n", b.name, c)
-		return b
+		return b, nil
 	}
 
 	s.cond.L.Lock()
@@ -170,7 +171,7 @@ func (s *dispatcher) selectWorker(c clientID, v url.Values) *builder {
 		if ok {
 			log.Printf("reselected worker %s for client %s\n", b.name, c)
 			s.cond.L.Unlock()
-			return b
+			return b, nil
 		}
 
 		b, err := s.findScheduleable(c, v)
@@ -180,11 +181,17 @@ func (s *dispatcher) selectWorker(c clientID, v url.Values) *builder {
 		if b != nil {
 			log.Printf("selected worker %s for client %s\n", b.name, c)
 			s.cond.L.Unlock()
-			return b
+			return b, nil
 		}
 
 		log.Printf("waiting for worker to become free\n")
 		s.cond.Wait()
 		log.Printf("worker became free\n")
+
+		if cxt.Err() != nil {
+			s.cond.L.Unlock()
+			s.cond.Signal()
+			return nil, fmt.Errorf("stoped waiting for a worker: %s", cxt.Err())
+		}
 	}
 }

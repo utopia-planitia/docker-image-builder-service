@@ -68,7 +68,10 @@ func (s *dispatcher) handle(w http.ResponseWriter, r *http.Request) {
 	v["t"] = t
 	v["cachefrom"] = cf
 
-	b := s.selectWorker(c, v)
+	b, err := s.selectWorker(r.Context(), c, v)
+	if err != nil {
+		return
+	}
 	defer s.recycle(b)
 	b.handle(w, r)
 }
