@@ -1,0 +1,11 @@
+{
+    "files.exclude": {
+        ".devtools": true,
+        ".devtools-deploy": true,
+        ".dispatcher": true,
+        ".dispatcher-deploy": true,
+        ".worker": true,
+        ".worker-deploy": true,
+        "*.log": true
+    }
+}
