@@ -1,12 +1,9 @@
 
 load test_helper
 
-setup() {
+@test "always pull base image" {
   export DATE=$(date +%s%N)
   docker pull alpine:3.7 >&2
-}
-
-@test "always pull base image" {
   run docker build --memory-swap=-1 --build-arg version="$DATE" -t allways-pull:$DATE tests/example-build
   [ "$status" -eq 0 ]
   [[ "${lines[1]}" = "Step 1/3 : FROM alpine:3.7" ]]
