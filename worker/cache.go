@@ -16,49 +16,40 @@ import (
 
 const masterBranch = "master"
 
-func load(tags []*tag, currentBranch string) {
+func load(tag *tag, currentBranch string) {
 
-	for _, t := range cacheSources(tags, currentBranch) {
+	for _, t := range cacheSources(tag, currentBranch) {
 		log.Printf("loading image %s as cache", t)
 		loadCommand(t)
 	}
 }
 
-func cacheSources(tags []*tag, currentBranch string) []*tag {
+func cacheSources(t *tag, currentBranch string) []*tag {
 	// order of images is important
 	// https://github.com/moby/moby/issues/26065#issuecomment-249046559
 	// https://github.com/moby/moby/pull/26839#issuecomment-277383550
 
 	sources := []*tag{}
-
-	for _, t := range tags {
-		if currentBranch != "" {
-			sources = append(sources, cachedBranchFilename(t, currentBranch))
-		}
-		sources = append(sources, cachedLatestFilename(t))
+	if currentBranch != "" {
+		sources = append(sources, cachedBranchFilename(t, currentBranch))
 	}
+	sources = append(sources, cachedLatestFilename(t))
 	return sources
 }
 
-func save(tags []*tag, branch string) {
-	log.Printf("saving tags: %s / currentBranch %s", tags, branch)
-	for _, t := range tags {
-		if t.version == "latest" {
-			log.Printf("saving :latest to tag %s", t)
-			saveCommand(t, cachedLatestFilename(t))
-		}
+func save(t *tag, branch string) {
+	log.Printf("saving tags: %s / currentBranch %s", t, branch)
+	if t.version == "latest" {
+		log.Printf("saving :latest to tag %s", t)
+		saveCommand(t, cachedLatestFilename(t))
 	}
 	if branch == masterBranch {
-		for _, t := range tags {
-			log.Printf("saving masterBranch to tag %s", t)
-			saveCommand(t, cachedLatestFilename(t))
-		}
+		log.Printf("saving masterBranch to tag %s", t)
+		saveCommand(t, cachedLatestFilename(t))
 	}
 	if branch != "" && branch != masterBranch {
-		for _, t := range tags {
-			log.Printf("saving currentBranch to tag %s", t)
-			saveCommand(t, cachedBranchFilename(t, branch))
-		}
+		log.Printf("saving currentBranch to tag %s", t)
+		saveCommand(t, cachedBranchFilename(t, branch))
 	}
 }
 

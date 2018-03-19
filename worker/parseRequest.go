@@ -8,16 +8,17 @@ import (
 	"strings"
 )
 
-func parseTagsAndBranches(r *http.Request) ([]*tag, string, error) {
+func parseTagsAndBranches(r *http.Request) (*tag, string, error) {
 
-	tags := []*tag{}
-	for _, t := range r.URL.Query()["t"] {
-		tags = append(tags, newTag(t))
+	ts := r.URL.Query()["t"]
+	if len(ts) != 1 {
+		return &tag{}, "", errors.New("tag parameter is not set exactly once")
 	}
+	tag := newTag(ts[0])
 
 	cfjson := r.URL.Query()["cachefrom"]
 	if len(cfjson) == 0 {
-		return tags, "", nil
+		return tag, "", nil
 	}
 	if len(cfjson) > 1 {
 		return nil, "", errors.New("cachefrom parameter is set multiple times")
@@ -28,7 +29,7 @@ func parseTagsAndBranches(r *http.Request) ([]*tag, string, error) {
 	}
 	currentBranch := filterCurrentBranch(cf)
 
-	return tags, currentBranch, nil
+	return tag, currentBranch, nil
 }
 
 func decodeCachefromJSON(cf string) ([]string, error) {
