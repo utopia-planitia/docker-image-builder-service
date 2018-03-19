@@ -41,10 +41,8 @@ func main() {
 		}
 	}()
 
-	// serve requests
 	err = server.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
-
 }

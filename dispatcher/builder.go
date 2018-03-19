@@ -29,13 +29,15 @@ type builder struct {
 }
 
 func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
-
 	if buildPath.MatchString(r.URL.Path) {
-		values := r.URL.Query()
-		values.Set("cpuquota", b.cpuquota)
-		values.Set("memory", b.memory)
-		r.URL.RawQuery = values.Encode()
+		b.configureBuildRequst(r)
 	}
-
 	b.proxy.ServeHTTP(w, r)
+}
+
+func (b *builder) configureBuildRequst(r *http.Request) {
+	values := r.URL.Query()
+	values.Set("cpuquota", b.cpuquota)
+	values.Set("memory", b.memory)
+	r.URL.RawQuery = values.Encode()
 }

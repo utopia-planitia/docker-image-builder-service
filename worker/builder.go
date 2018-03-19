@@ -97,13 +97,13 @@ func (b *builder) build(w http.ResponseWriter, r *http.Request) {
 	}
 
 	load(tag, currentBranch)
-	cacheFromLocalImages(r, cacheSources(tag, currentBranch))
+	configureRequest(r, cacheSources(tag, currentBranch))
 	log.Printf("docker forwarded request: %v\n", r)
 	b.docker.ServeHTTP(w, r)
 	save(tag, currentBranch)
 }
 
-func cacheFromLocalImages(r *http.Request, tags []*tag) {
+func configureRequest(r *http.Request, tags []*tag) {
 
 	values := r.URL.Query()
 

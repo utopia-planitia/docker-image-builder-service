@@ -62,14 +62,13 @@ func (s *dispatcher) handle(w http.ResponseWriter, r *http.Request) {
 	}
 	c := clientID(ip)
 
-	t := r.URL.Query()["t"]
-	cf := r.URL.Query()["cachefrom"]
 	v := url.Values{}
-	v["t"] = t
-	v["cachefrom"] = cf
+	v["t"] = r.URL.Query()["t"]
+	v["cachefrom"] = r.URL.Query()["cachefrom"]
 
 	b, err := s.selectWorker(r.Context(), c, v)
 	if err != nil {
+		log.Printf("failed select Worker: %s\n", err)
 		return
 	}
 	defer s.recycle(b)

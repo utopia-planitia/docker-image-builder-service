@@ -3,11 +3,10 @@ package main
 // https://github.com/moby/moby/tree/master/client#go-client-for-the-docker-engine-api
 
 import (
+	"bytes"
 	"context"
 	"log"
 	"strings"
-
-	"bytes"
 
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
@@ -37,33 +36,6 @@ func cacheSources(t *tag, currentBranch string) []*tag {
 	return sources
 }
 
-func save(t *tag, branch string) {
-	log.Printf("saving tags: %s / currentBranch %s", t, branch)
-	if t.version == "latest" {
-		log.Printf("saving :latest to tag %s", t)
-		saveCommand(t, cachedLatestFilename(t))
-	}
-	if branch == masterBranch {
-		log.Printf("saving masterBranch to tag %s", t)
-		saveCommand(t, cachedLatestFilename(t))
-	}
-	if branch != "" && branch != masterBranch {
-		log.Printf("saving currentBranch to tag %s", t)
-		saveCommand(t, cachedBranchFilename(t, branch))
-	}
-}
-
-func cachedLatestFilename(t *tag) *tag {
-	return cachedBranchFilename(t, "latest")
-}
-
-func cachedBranchFilename(t *tag, branch string) *tag {
-	return &tag{
-		image:   strings.Replace(t.image, ":", "~", -1),
-		version: branch,
-	}
-}
-
 func loadCommand(remote reference.Reference) {
 
 	cli, err := client.NewClientWithOpts(client.FromEnv)
@@ -88,6 +60,28 @@ func loadCommand(remote reference.Reference) {
 	err = response.Close()
 	if err != nil {
 		log.Printf("failed to close response of image pull: %s", err)
+	}
+}
+
+func save(t *tag, branch string) {
+	if t.version == "latest" || branch == masterBranch {
+		log.Printf("saving latest cache image for tag %s", t)
+		saveCommand(t, cachedLatestFilename(t))
+	}
+	if branch != "" && branch != masterBranch {
+		log.Printf("saving currentBranch to tag %s", t)
+		saveCommand(t, cachedBranchFilename(t, branch))
+	}
+}
+
+func cachedLatestFilename(t *tag) *tag {
+	return cachedBranchFilename(t, "latest")
+}
+
+func cachedBranchFilename(t *tag, branch string) *tag {
+	return &tag{
+		image:   strings.Replace(t.image, ":", "~", -1),
+		version: branch,
 	}
 }
 
