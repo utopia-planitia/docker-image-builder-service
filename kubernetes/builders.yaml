@@ -31,7 +31,6 @@ spec:
           image: utopiaplanitia/docker-image-builder-worker:latest
           imagePullPolicy: Never
           args:
-            - worker
             - --docker=http://127.0.0.1:2376
           env:
             - name: DOCKER_HOST
