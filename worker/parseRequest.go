@@ -27,7 +27,7 @@ func parseTagsAndBranches(r *http.Request) (*tag, string, error) {
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to decode cachefrom json: %s", err)
 	}
-	currentBranch := filterCurrentBranch(cf)
+	currentBranch := findCurrentBranch(cf)
 
 	return tag, currentBranch, nil
 }
@@ -43,7 +43,7 @@ func decodeCachefromJSON(cf string) ([]string, error) {
 	return l, nil
 }
 
-func filterCurrentBranch(cf []string) string {
+func findCurrentBranch(cf []string) string {
 	for _, e := range cf {
 		if strings.HasPrefix(e, "currentBranch=") {
 			return e[len("currentBranch="):]
