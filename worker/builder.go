@@ -75,11 +75,6 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if isRequestingTag(r.URL.Path) {
-		b.tag(w, r)
-		return
-	}
-
 	b.docker.ServeHTTP(w, r)
 }
 
@@ -89,10 +84,6 @@ func isRequestingContainer(r string) bool {
 
 func isRequestingBuild(r string) bool {
 	return buildPath.MatchString(r)
-}
-
-func isRequestingTag(r string) bool {
-	return tagPath.MatchString(r)
 }
 
 func (b *builder) build(w http.ResponseWriter, r *http.Request) {
@@ -113,14 +104,6 @@ func (b *builder) build(w http.ResponseWriter, r *http.Request) {
 	log.Printf("docker forwarded request: %v\n", r)
 	b.docker.ServeHTTP(w, r)
 	save(tags, currentBranch)
-}
-
-func (b *builder) tag(w http.ResponseWriter, r *http.Request) {
-	repo := r.URL.Query().Get("repo")
-	t := r.URL.Query().Get("tag")
-	tags := []*tag{&tag{image: repo, version: t}}
-	b.docker.ServeHTTP(w, r)
-	save(tags, "")
 }
 
 func cacheFromLocalImages(r *http.Request, tags []*tag) {

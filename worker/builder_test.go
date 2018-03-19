@@ -32,20 +32,6 @@ var containerTests = []struct {
 	{"/v1.24/images/name/tag", false},
 }
 
-var tagsTests = []struct {
-	in  string
-	out bool
-}{
-	{"/", false},
-	{"/_ping", false},
-	{"/build", false},
-	{"/v1.24/build", false},
-	{"/containers", false},
-	{"/v1.24/containers", false},
-	{"/images/name/tag", true},
-	{"/v1.24/images/name/tag", true},
-}
-
 func TestIsRequestingBuild(t *testing.T) {
 	for _, tt := range buildTests {
 		b := isRequestingBuild(tt.in)
@@ -60,15 +46,6 @@ func TestIsRequestingContainer(t *testing.T) {
 		b := isRequestingContainer(tt.in)
 		if b != tt.out {
 			t.Errorf("isRequestingBuild(%q) => %t, want %t", tt.in, b, tt.out)
-		}
-	}
-}
-
-func TestIsRequestingTag(t *testing.T) {
-	for _, tt := range tagsTests {
-		b := isRequestingTag(tt.in)
-		if b != tt.out {
-			t.Errorf("isRequestingTag(%q) => %t, want %t", tt.in, b, tt.out)
 		}
 	}
 }

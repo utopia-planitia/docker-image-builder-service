@@ -12,11 +12,11 @@ setup() {
   docker pull alpine:3.7 >&2
 }
 
-@test "cache from re-tagged :latest image" {
+@test "do not update cache from tag" {
   run docker build --memory-swap=-1 --build-arg version="$DATE" -t test-tag-$DATE:2nd tests/example-build
   [ "$status" -eq 0 ]
-  [ "${lines[7]}" = " ---> Using cache" ]
-  [ "${lines[10]}" = " ---> Using cache" ]
+  [ "${lines[7]}" != " ---> Using cache" ]
+  [ "${lines[10]}" != " ---> Using cache" ]
   [[ "${lines[12]}" =~ Successfully.* ]]
   [[ "${lines[13]}" =~ Successfully.* ]]
 }
