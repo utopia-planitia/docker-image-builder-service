@@ -97,7 +97,7 @@ func isRequestingTag(r string) bool {
 
 func (b *builder) build(w http.ResponseWriter, r *http.Request) {
 
-	tags, cacheFromBranches, currentBranch, err := parseTagsAndBranches(r)
+	tags, currentBranch, err := parseTagsAndBranches(r)
 	if err != nil {
 		log.Printf("failed to parse tags and branches from request: %s\n", err)
 	}
@@ -108,8 +108,8 @@ func (b *builder) build(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	load(tags, cacheFromBranches, currentBranch)
-	cacheFromLocalImages(r, cacheSources(tags, cacheFromBranches, currentBranch))
+	load(tags, currentBranch)
+	cacheFromLocalImages(r, cacheSources(tags, currentBranch))
 	log.Printf("docker forwarded request: %v\n", r)
 	b.docker.ServeHTTP(w, r)
 	save(tags, currentBranch)

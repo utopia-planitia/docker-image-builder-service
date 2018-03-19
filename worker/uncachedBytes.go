@@ -18,14 +18,14 @@ func uncachedSize(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("requested path: %s\n", r.URL)
 
-	tags, branches, currentBranch, err := parseTagsAndBranches(r)
+	tags, currentBranch, err := parseTagsAndBranches(r)
 	if err != nil {
 		log.Printf("failed to parse tags and branches from request: %s\n", err)
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
-	loadableTags := cacheSources(tags, branches, currentBranch)
+	loadableTags := cacheSources(tags, currentBranch)
 	remoteLayers, err := remoteLayers(loadableTags)
 	if err != nil {
 		log.Printf("failed list remote layers: %s\n", err)
