@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -88,22 +89,18 @@ func isRequestingBuild(r string) bool {
 
 func (b *builder) build(w http.ResponseWriter, r *http.Request) {
 
-	tags, currentBranch, err := parseTagsAndBranches(r)
+	tag, currentBranch, err := parseTagsAndBranches(r)
 	if err != nil {
-		log.Printf("failed to parse tags and branches from request: %s\n", err)
-	}
-	if len(tags) == 0 {
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte("untagged builds are not supported"))
-		log.Printf("no tags set: %s\n", r.URL)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(fmt.Sprintf("failed to parse request: %s\n", err)))
 		return
 	}
 
-	load(tags, currentBranch)
-	cacheFromLocalImages(r, cacheSources(tags, currentBranch))
+	load(tag, currentBranch)
+	cacheFromLocalImages(r, cacheSources(tag, currentBranch))
 	log.Printf("docker forwarded request: %v\n", r)
 	b.docker.ServeHTTP(w, r)
-	save(tags, currentBranch)
+	save(tag, currentBranch)
 }
 
 func cacheFromLocalImages(r *http.Request, tags []*tag) {
