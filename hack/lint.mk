@@ -6,7 +6,7 @@ lint: ##@linting Runs all linters.
 
 .PHONY: lint-bash
 lint-bash: ##@linting Lint Bash scripts.
-	shellcheck etc/*.sh
+	shellcheck hack/*.sh
 
 .PHONY: lint-go
 lint-go: ##@linting Lint Go code.

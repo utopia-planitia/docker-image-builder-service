@@ -6,12 +6,12 @@ start: ##@setup Starts minikube.
 
 .PHONY: init
 init:
-	./etc/start-minikube.sh
+	./hack/start-minikube.sh
 	minikube update-context
 
 .PHONY: await
 await:
-	./etc/await-minikube.sh
+	./hack/await-minikube.sh
 
 .PHONY: stop
 stop: ##@setup Stops minikube.
