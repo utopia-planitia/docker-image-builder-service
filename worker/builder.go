@@ -92,7 +92,11 @@ func (b *builder) build(w http.ResponseWriter, r *http.Request) {
 	tag, currentBranch, err := parseTagsAndBranches(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(fmt.Sprintf("failed to parse request: %s\n", err)))
+		message := fmt.Sprintf("failed to parse request: %s\n", err)
+		_, err := w.Write([]byte(message))
+		if err != nil {
+			log.Printf("failed to write to response: %v\n", err)
+		}
 		return
 	}
 
