@@ -21,4 +21,4 @@ end-to-end-test: .devtools ##@testing Runs end to end tests.
 
 .PHONY: queue-test
 queue-test: .devtools ##@testing Runs more parallel builds then workers
-	./etc/queue-test.sh
+	./hack/queue-test.sh

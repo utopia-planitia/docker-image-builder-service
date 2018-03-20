@@ -10,22 +10,22 @@ cli: .devtools ##@development Opens a command line interface with development to
 .PHONY: deploy
 deploy: .devtools .dispatcher .worker ##@development Deploys the current code.
 	kubectl apply -f kubernetes/namespace.yaml -f kubernetes
-	./etc/restart-pods.sh
+	./hack/restart-pods.sh
 	docker run -ti --rm \
 		--dns 10.96.0.10 --dns-search container-image-builder.svc.cluster.local \
 		-e DOCKER_HOST=tcp://docker:2375 \
 		-v $(PWD):/project -w /project \
-		utopiaplanitia/docker-image-builder-devtools:latest ./etc/await-docker-ping.sh
+		utopiaplanitia/docker-image-builder-devtools:latest ./hack/await-docker-ping.sh
 
 .PHONY: redeploy
 redeploy: .devtools-deploy .dispatcher-deploy .worker-deploy ##@development Redeploys changed code.
 	kubectl apply -f kubernetes/mirror.yaml -f kubernetes/cache.yaml
-	./etc/await-pods.sh
+	./hack/await-pods.sh
 	docker run -ti --rm \
 		--dns 10.96.0.10 --dns-search container-image-builder.svc.cluster.local \
 		-e DOCKER_HOST=tcp://docker:2375 \
 		-v $(PWD):/project -w /project \
-		utopiaplanitia/docker-image-builder-devtools:latest ./etc/await-docker-ping.sh
+		utopiaplanitia/docker-image-builder-devtools:latest ./hack/await-docker-ping.sh
 
 .devtools-deploy: .devtools kubernetes/devtools.yaml
 	kubectl apply -f kubernetes/devtools.yaml
