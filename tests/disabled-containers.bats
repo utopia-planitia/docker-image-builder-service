@@ -1,9 +1,9 @@
 
 load test_helper
 
-@test "docker ps is disabled" {
+@test "docker ps is allowed" {
   run docker ps
-  [ "$status" -ne 0 ]
+  [ "$status" -eq 0 ]
 }
 
 @test "docker run is disabled" {

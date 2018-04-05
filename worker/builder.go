@@ -65,7 +65,7 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("requested path: %s\n", r.URL)
 
-	if isRequestingContainer(r.URL.Path) {
+	if isRequestingContainer(r.URL.Path) && r.Method != "GET" {
 		w.WriteHeader(http.StatusForbidden)
 		log.Printf("container use is forbidden: %s\n", r.URL)
 		return
