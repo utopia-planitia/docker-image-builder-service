@@ -94,7 +94,7 @@ func cachedLatestFilename(t *tag) *tag {
 
 func cachedBranchFilename(t *tag, branch string) *tag {
 	return &tag{
-		image:   strings.Replace(t.image, ":", "~", -1),
+		image:   strings.Replace(t.image, ":", "-", -1),
 		version: branch,
 	}
 }
