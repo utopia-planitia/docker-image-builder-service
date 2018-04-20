@@ -39,5 +39,6 @@ func (b *builder) configureBuildRequst(r *http.Request) {
 	values := r.URL.Query()
 	values.Set("cpuquota", b.cpuquota)
 	values.Set("memory", b.memory)
+	values.Set("networkmode", "host")
 	r.URL.RawQuery = values.Encode()
 }
