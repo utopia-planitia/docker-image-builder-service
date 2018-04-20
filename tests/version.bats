@@ -6,6 +6,8 @@ load test_helper
   [ "$status" -eq 0 ]
   [ "${lines[0]}" = "Client:" ]
   [ "${lines[1]}" = " Version:	17.12.1-ce" ]
+  [ "${lines[2]}" = " API version:	1.35" ]
   [ "${lines[7]}" = "Server:" ]
   [ "${lines[9]}" = "  Version:	17.12.1-ce" ]
+  [ "${lines[10]}" = "  API version:	1.35 (minimum version 1.12)" ]
 }

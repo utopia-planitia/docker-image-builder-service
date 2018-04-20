@@ -40,7 +40,7 @@ func newDispatcher(endpoints []*url.URL, cpu, memory *int64, addr *string) *http
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", s.handle)
-	mux.HandleFunc("/_ping", ok)
+	mux.HandleFunc("/healthz", healthz)
 
 	return &http.Server{
 		Addr:         *addr,

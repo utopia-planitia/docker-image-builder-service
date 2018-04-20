@@ -52,6 +52,7 @@ func newBuilder(endpoint *url.URL, addr *string) *http.Server {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", b.handle)
 	mux.HandleFunc("/uncachedSize", uncachedSize)
+	mux.HandleFunc("/healthz", healthz)
 
 	return &http.Server{
 		Addr:         *addr,

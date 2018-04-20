@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func ok(w http.ResponseWriter, r *http.Request) {
+func healthz(w http.ResponseWriter, r *http.Request) {
 	log.Printf("requested path: %s\n", r.URL)
 
 	w.WriteHeader(http.StatusOK)

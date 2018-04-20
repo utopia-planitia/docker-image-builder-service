@@ -45,7 +45,7 @@ spec:
               port: 2375
           readinessProbe:
             httpGet:
-              path: /_ping
+              path: /healthz
               port: 2375
           volumeMounts:
             - mountPath: /var/lib/docker
@@ -67,6 +67,11 @@ spec:
           securityContext:
             privileged: true
           livenessProbe:
+            exec:
+              command:
+                - docker
+                - version
+          readinessProbe:
             exec:
               command:
                 - docker

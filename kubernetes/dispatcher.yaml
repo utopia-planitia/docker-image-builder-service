@@ -24,7 +24,7 @@ spec:
               port: 2375
           readinessProbe:
             httpGet:
-              path: /_ping
+              path: /healthz
               port: 2375
 ---
 kind: Service
