@@ -23,6 +23,7 @@ type builder struct {
 	proxy           *httputil.ReverseProxy
 	cpuquota        string
 	memory          string
+	network         string
 	openConnections int32
 	dedicatedTo     clientID
 	lastestUse      int64
@@ -37,8 +38,14 @@ func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
 
 func (b *builder) configureBuildRequest(r *http.Request) {
 	values := r.URL.Query()
-	values.Set("cpuquota", b.cpuquota)
-	values.Set("memory", b.memory)
-	values.Set("networkmode", "host")
+	if b.cpuquota != "0" {
+		values.Set("cpuquota", b.cpuquota)
+	}
+	if b.memory != "0" {
+		values.Set("memory", b.memory)
+	}
+	if b.network != "" {
+		values.Set("networkmode", "host")
+	}
 	r.URL.RawQuery = values.Encode()
 }

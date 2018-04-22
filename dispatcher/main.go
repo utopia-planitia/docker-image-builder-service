@@ -17,8 +17,9 @@ func main() {
 	var err error
 
 	addr := flag.String("address", ":2375", "default server address, ':2375'")
-	cpu := flag.Int64("cpu", 1000000, "cpu microseconds used per second per build")
-	memory := flag.Int64("memory", 2147483648, "memory used per build in Byte")
+	cpu := flag.Int64("cpu", 0, "cpu microseconds used per second per build")
+	memory := flag.Int64("memory", 0, "memory used per build in Byte")
+	network := flag.String("network", "", "network to use for build")
 	target := flag.String("workers", "", "worker urls, 'http://worker_1:2375,...'")
 
 	flag.Parse()
@@ -40,7 +41,7 @@ func main() {
 	log.Printf("use %v bytes memory per build\n", *memory)
 	log.Printf("use %v as workers\n", *target)
 
-	server := newDispatcher(endpoints, cpu, memory, addr)
+	server := newDispatcher(endpoints, cpu, memory, network, addr)
 
 	// wait for an exit signal
 	stop := make(chan os.Signal, 2)

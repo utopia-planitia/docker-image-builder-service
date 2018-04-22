@@ -15,7 +15,7 @@ type dispatcher struct {
 	cond     *sync.Cond
 }
 
-func newDispatcher(endpoints []*url.URL, cpu, memory *int64, addr *string) *http.Server {
+func newDispatcher(endpoints []*url.URL, cpu, memory *int64, network, addr *string) *http.Server {
 
 	builders := make([]*builder, len(endpoints))
 
@@ -27,6 +27,7 @@ func newDispatcher(endpoints []*url.URL, cpu, memory *int64, addr *string) *http
 			proxy:    r,
 			cpuquota: strconv.FormatInt(*cpu, 10),
 			memory:   strconv.FormatInt(*memory, 10),
+			network:  *network,
 		}
 	}
 
