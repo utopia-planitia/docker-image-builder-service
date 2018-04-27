@@ -2,12 +2,11 @@
 load test_helper
 
 @test "uncached bytes should be 0 before the first build and should be 0 after a build" {
-  export DATE=$(date +%s%N)
 
-  run curl --silent "http://builder-0.builder.container-image-builder.svc.cluster.local:2375/uncachedSize?cachefrom=%5B%5D&t=uncached-$DATE"
+  run curl -H "GitBranchName: branchname-$DATE" --silent "http://builder-0.builder.container-image-builder.svc.cluster.local:2375/uncachedSize?cachefrom=%5B%5D&t=uncached-$DATE"
   [ "$status" -eq 0 ]
   [ "${lines[0]}" = "0" ]
-  run curl --silent "http://builder-1.builder.container-image-builder.svc.cluster.local:2375/uncachedSize?cachefrom=%5B%5D&t=uncached-$DATE"
+  run curl -H "GitBranchName: branchname-$DATE" --silent "http://builder-1.builder.container-image-builder.svc.cluster.local:2375/uncachedSize?cachefrom=%5B%5D&t=uncached-$DATE"
   [ "$status" -eq 0 ]
   [ "${lines[0]}" = "0" ]
 
@@ -17,10 +16,10 @@ load test_helper
   run docker build --build-arg version="$DATE" -t uncached-$DATE tests/example-build
   [ "$status" -eq 0 ]
 
-  run curl --silent "http://builder-0.builder.container-image-builder.svc.cluster.local:2375/uncachedSize?cachefrom=%5B%5D&t=uncached-$DATE"
+  run curl -H "GitBranchName: branchname-$DATE" --silent "http://builder-0.builder.container-image-builder.svc.cluster.local:2375/uncachedSize?cachefrom=%5B%5D&t=uncached-$DATE"
   [ "$status" -eq 0 ]
   [ "${lines[0]}" = "0" ]
-  run curl --silent "http://builder-1.builder.container-image-builder.svc.cluster.local:2375/uncachedSize?cachefrom=%5B%5D&t=uncached-$DATE"
+  run curl -H "GitBranchName: branchname-$DATE" --silent "http://builder-1.builder.container-image-builder.svc.cluster.local:2375/uncachedSize?cachefrom=%5B%5D&t=uncached-$DATE"
   [ "$status" -eq 0 ]
   [ "${lines[0]}" != "0" ]
 
@@ -35,10 +34,10 @@ load test_helper
   [[ "${lines[12]}" =~ Successfully.* ]]
   [[ "${lines[13]}" =~ Successfully.* ]]
 
-  run curl --silent "http://builder-0.builder.container-image-builder.svc.cluster.local:2375/uncachedSize?cachefrom=%5B%5D&t=uncached-$DATE"
+  run curl -H "GitBranchName: branchname-$DATE" --silent "http://builder-0.builder.container-image-builder.svc.cluster.local:2375/uncachedSize?cachefrom=%5B%5D&t=uncached-$DATE"
   [ "$status" -eq 0 ]
   [ "${lines[0]}" = "0" ]
-  run curl --silent "http://builder-1.builder.container-image-builder.svc.cluster.local:2375/uncachedSize?cachefrom=%5B%5D&t=uncached-$DATE"
+  run curl -H "GitBranchName: branchname-$DATE" --silent "http://builder-1.builder.container-image-builder.svc.cluster.local:2375/uncachedSize?cachefrom=%5B%5D&t=uncached-$DATE"
   [ "$status" -eq 0 ]
   [ "${lines[0]}" = "0" ]
 }

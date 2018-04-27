@@ -41,7 +41,7 @@ func (s *dispatcher) reselect(c clientID) (*builder, bool) {
 	return nil, false
 }
 
-func (s *dispatcher) findScheduleable(c clientID, v url.Values) (*builder, error) {
+func (s *dispatcher) findScheduleable(c clientID, v url.Values, h http.Header) (*builder, error) {
 	r := rand.New(rand.NewSource(time.Now().Unix()))
 	var selectableBuilders []*builder
 	for _, i := range r.Perm(len(s.builders)) {
@@ -55,7 +55,7 @@ func (s *dispatcher) findScheduleable(c clientID, v url.Values) (*builder, error
 		return nil, nil
 	}
 
-	b, err := selectByUncachedSize(selectableBuilders, v)
+	b, err := selectByUncachedSize(selectableBuilders, v, h)
 	if err != nil {
 		return nil, fmt.Errorf("failed to select builder on uncached bytes size: %s", err)
 	}
@@ -66,8 +66,8 @@ func (s *dispatcher) findScheduleable(c clientID, v url.Values) (*builder, error
 	return b, nil
 }
 
-func selectByUncachedSize(bs []*builder, v url.Values) (*builder, error) {
-	if len(v["t"]) == 0 && len(v["cf"]) == 0 {
+func selectByUncachedSize(bs []*builder, v url.Values, h http.Header) (*builder, error) {
+	if len(v["t"]) == 0 && len(v["cachefrom"]) == 0 {
 		return bs[0], nil
 	}
 
@@ -79,7 +79,7 @@ func selectByUncachedSize(bs []*builder, v url.Values) (*builder, error) {
 		ch := make(chan builderBytesize)
 		chs[i] = ch
 		go func(b *builder, ch chan builderBytesize) {
-			bytes, err := uncachedSize(c, b, v)
+			bytes, err := uncachedSize(c, b, v, h)
 			ch <- builderBytesize{
 				builder:  b,
 				bytesize: bytes,
@@ -108,8 +108,14 @@ func selectByUncachedSize(bs []*builder, v url.Values) (*builder, error) {
 	return b, nil
 }
 
-func uncachedSize(c *http.Client, b *builder, v url.Values) (int64, error) {
-	resp, err := c.Get(b.name.String() + "/uncachedSize?" + v.Encode())
+func uncachedSize(c *http.Client, b *builder, v url.Values, h http.Header) (int64, error) {
+	req, err := http.NewRequest("GET", b.name.String()+"/uncachedSize?"+v.Encode(), nil)
+	if err != nil {
+		return 0, fmt.Errorf("failed to create request to ask for uncached bytes: %s", err)
+	}
+	req.Header = h
+
+	resp, err := c.Do(req)
 	if err != nil {
 		return 0, fmt.Errorf("rpc for uncached bytes failed: %s", err)
 	}
@@ -157,7 +163,7 @@ func (s *dispatcher) recycle(b *builder) {
 	}(b, t)
 }
 
-func (s *dispatcher) selectWorker(cxt context.Context, c clientID, v url.Values) (*builder, error) {
+func (s *dispatcher) selectWorker(cxt context.Context, c clientID, v url.Values, h http.Header) (*builder, error) {
 
 	b, ok := s.reselect(c)
 	if ok {
@@ -174,7 +180,7 @@ func (s *dispatcher) selectWorker(cxt context.Context, c clientID, v url.Values)
 			return b, nil
 		}
 
-		b, err := s.findScheduleable(c, v)
+		b, err := s.findScheduleable(c, v, h)
 		if err != nil {
 			log.Printf("failed to select builder: %s\n", err)
 		}
