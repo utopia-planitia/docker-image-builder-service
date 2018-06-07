@@ -6,13 +6,14 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strconv"
-	"sync"
 	"time"
+
+	"github.com/damoon/ttlcache"
 )
 
 type dispatcher struct {
 	builders []*builder
-	cond     *sync.Cond
+	cache    *cache
 }
 
 func newDispatcher(endpoints []*url.URL, cpu, memory *int64, network, addr *string) *http.Server {
@@ -31,12 +32,12 @@ func newDispatcher(endpoints []*url.URL, cpu, memory *int64, network, addr *stri
 		}
 	}
 
-	m := &sync.Mutex{}
-	c := sync.NewCond(m)
+	cache := &cache{ttlcache.NewCache(time.Minute)}
+	cache.StartCleanupTimer(10 * time.Second)
 
 	s := &dispatcher{
 		builders: builders,
-		cond:     c,
+		cache:    cache,
 	}
 
 	mux := http.NewServeMux()
@@ -73,6 +74,6 @@ func (s *dispatcher) handle(w http.ResponseWriter, r *http.Request) {
 		log.Printf("failed select Worker: %s\n", err)
 		return
 	}
-	defer s.recycle(b)
+	defer s.returnWorker(b)
 	b.handle(w, r)
 }

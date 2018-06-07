@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"sync/atomic"
 	"time"
+
+	"github.com/damoon/ttlcache"
 )
 
 type clientID string
@@ -25,20 +27,55 @@ type builderBytesize struct {
 
 const reservation = 10 * time.Second
 
-func (s *dispatcher) reselect(c clientID) (*builder, bool) {
-	for _, b := range s.builders {
-		if b.dedicatedTo != c {
-			continue
-		}
-		atomic.AddInt32(&b.openConnections, 1)
-		if b.dedicatedTo != c {
-			atomic.AddInt32(&b.openConnections, -1)
-			continue
-		}
-		b.lastestUse = time.Now().Unix()
-		return b, true
+type cache struct {
+	*ttlcache.Cache
+}
+
+func (cache *cache) Set(k clientID, v *builder) {
+	cache.SetUnsafe(k, v)
+}
+
+func (cache *cache) Get(k clientID) (*builder, bool) {
+	cached, found := cache.GetUnsafe(k)
+	if !found {
+		return &builder{}, false
 	}
-	return nil, false
+	return cached.(*builder), true
+}
+
+func (s *dispatcher) returnWorker(b *builder) {
+	atomic.AddInt32(&b.openConnections, -1)
+}
+
+func (s *dispatcher) selectWorker(cxt context.Context, cID clientID, v url.Values, h http.Header) (*builder, error) {
+
+	builder, found := s.cache.Get(cID)
+	if found {
+		atomic.AddInt32(&builder.openConnections, 1)
+		log.Printf("reselected worker %s for client %s\n", builder.name, cID)
+		return builder, nil
+	}
+
+	builder, err := s.findScheduleable(cID, v, h)
+	if err != nil {
+		log.Printf("failed to select builder: %s\n", err)
+	}
+	if builder != nil {
+		s.cache.Set(cID, builder)
+		atomic.AddInt32(&builder.openConnections, 1)
+		log.Printf("selected worker %s for client %s\n", builder.name, cID)
+		return builder, nil
+	}
+
+	builder, found = s.findLeastConnected()
+	if found {
+		s.cache.Set(cID, builder)
+		atomic.AddInt32(&builder.openConnections, 1)
+		log.Printf("selected worker %s for client %s\n", builder.name, cID)
+		return builder, nil
+	}
+
+	return nil, fmt.Errorf("failed to find a worker")
 }
 
 func (s *dispatcher) findScheduleable(c clientID, v url.Values, h http.Header) (*builder, error) {
@@ -64,6 +101,15 @@ func (s *dispatcher) findScheduleable(c clientID, v url.Values, h http.Header) (
 	b.lastestUse = time.Now().Unix()
 	atomic.AddInt32(&b.openConnections, 1)
 	return b, nil
+}
+
+func scheduleable(b *builder) bool {
+	if b.dedicatedTo == "" {
+		return true
+	}
+	notConnected := b.openConnections == 0
+	reservationEnded := b.lastestUse <= time.Now().Add(reservation).Unix()
+	return notConnected && reservationEnded
 }
 
 func selectByUncachedSize(bs []*builder, v url.Values, h http.Header) (*builder, error) {
@@ -136,68 +182,18 @@ func uncachedSize(c *http.Client, b *builder, v url.Values, h http.Header) (int6
 	return size, nil
 }
 
-func scheduleable(b *builder) bool {
-	if b.dedicatedTo == "" {
-		return true
-	}
-	notConnected := b.openConnections == 0
-	reservationEnded := b.lastestUse <= time.Now().Add(reservation).Unix()
-	return notConnected && reservationEnded
-}
-
-func (s *dispatcher) recycle(b *builder) {
-	t := time.Now().Unix()
-	b.lastestUse = t
-	o := atomic.AddInt32(&b.openConnections, -1)
-	if o != 0 {
-		return
-	}
-	go func(b *builder, t int64) {
-		time.Sleep(reservation)
-		if b.lastestUse != t {
-			return
+func (s *dispatcher) findLeastConnected() (*builder, bool) {
+	r := rand.New(rand.NewSource(time.Now().Unix()))
+	var selected *builder
+	for _, i := range r.Perm(len(s.builders)) {
+		builder := s.builders[i]
+		if selected == nil {
+			selected = builder
+			continue
 		}
-		log.Printf("worker can be recycled: %s\n", b.name)
-		s.cond.Signal()
-		log.Printf("broadcasted 'recycled worker'\n")
-	}(b, t)
-}
-
-func (s *dispatcher) selectWorker(cxt context.Context, c clientID, v url.Values, h http.Header) (*builder, error) {
-
-	b, ok := s.reselect(c)
-	if ok {
-		log.Printf("reselected worker %s for client %s\n", b.name, c)
-		return b, nil
-	}
-
-	s.cond.L.Lock()
-	for {
-		b, ok := s.reselect(c)
-		if ok {
-			log.Printf("reselected worker %s for client %s\n", b.name, c)
-			s.cond.L.Unlock()
-			return b, nil
-		}
-
-		b, err := s.findScheduleable(c, v, h)
-		if err != nil {
-			log.Printf("failed to select builder: %s\n", err)
-		}
-		if b != nil {
-			log.Printf("selected worker %s for client %s\n", b.name, c)
-			s.cond.L.Unlock()
-			return b, nil
-		}
-
-		log.Printf("waiting for worker to become free\n")
-		s.cond.Wait()
-		log.Printf("worker became free\n")
-
-		if cxt.Err() != nil {
-			s.cond.L.Unlock()
-			s.cond.Signal()
-			return nil, fmt.Errorf("stoped waiting for a worker: %s", cxt.Err())
+		if atomic.LoadInt32(&selected.openConnections) > atomic.LoadInt32(&builder.openConnections) {
+			selected = builder
 		}
 	}
+	return selected, selected != nil
 }

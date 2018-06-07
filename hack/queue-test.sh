@@ -30,7 +30,7 @@ END=$(date +%s)
 DELAY=$((END - START))
 echo "build took $DELAY seconds"
 
-if [ "$DELAY" -lt 20 ]; then
+if [ "$DELAY" -lt 4 ]; then
   echo "build was to fast"
   for i in {1..5}
   do
@@ -40,7 +40,7 @@ if [ "$DELAY" -lt 20 ]; then
   exit 1
 fi
 
-if [ "$DELAY" -gt 40 ]; then
+if [ "$DELAY" -gt 10 ]; then
   echo "build was to slow"
   for i in {1..5}
   do
