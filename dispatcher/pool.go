@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -47,7 +46,7 @@ func (s *dispatcher) returnWorker(b *builder) {
 	atomic.AddInt32(&b.openConnections, -1)
 }
 
-func (s *dispatcher) selectWorker(cxt context.Context, cID clientID, v url.Values, h http.Header) (*builder, error) {
+func (s *dispatcher) selectWorker(cID clientID, v url.Values, h http.Header) (*builder, error) {
 
 	builder, found := s.cache.Get(cID)
 	if found {

@@ -69,7 +69,7 @@ func (s *dispatcher) handle(w http.ResponseWriter, r *http.Request) {
 	h := http.Header{}
 	h["t"] = r.Header["GitBranchName"]
 
-	b, err := s.selectWorker(r.Context(), c, v, h)
+	b, err := s.selectWorker(c, v, h)
 	if err != nil {
 		log.Printf("failed select Worker: %s\n", err)
 		return
