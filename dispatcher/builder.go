@@ -45,7 +45,7 @@ func (b *builder) configureBuildRequest(r *http.Request) {
 		values.Set("memory", b.memory)
 	}
 	if b.network != "" {
-		values.Set("networkmode", "host")
+		values.Set("networkmode", b.network)
 	}
 	r.URL.RawQuery = values.Encode()
 }
