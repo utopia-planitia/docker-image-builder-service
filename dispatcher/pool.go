@@ -42,8 +42,9 @@ func (cache *cache) Get(k clientID) (*builder, bool) {
 	return cached.(*builder), true
 }
 
-func (s *dispatcher) returnWorker(b *builder) {
+func (s *dispatcher) returnWorker(cID clientID, b *builder) {
 	atomic.AddInt32(&b.openConnections, -1)
+	s.cache.Get(cID)
 }
 
 func (s *dispatcher) selectWorker(cID clientID, v url.Values, h http.Header) (*builder, error) {

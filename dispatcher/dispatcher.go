@@ -32,7 +32,7 @@ func newDispatcher(endpoints []*url.URL, cpu, memory *int64, network, addr *stri
 		}
 	}
 
-	cache := &cache{ttlcache.NewCache(time.Minute)}
+	cache := &cache{ttlcache.NewCache(24 * time.Hour)}
 	cache.StartCleanupTimer(10 * time.Second)
 
 	s := &dispatcher{
@@ -74,6 +74,6 @@ func (s *dispatcher) handle(w http.ResponseWriter, r *http.Request) {
 		log.Printf("failed select Worker: %s\n", err)
 		return
 	}
-	defer s.returnWorker(b)
+	defer s.returnWorker(c, b)
 	b.handle(w, r)
 }
