@@ -26,6 +26,7 @@ spec:
       labels:
         app: builder
     spec:
+      hostNetwork: true
       containers:
         - name: worker
           image: utopiaplanitia/docker-image-builder-worker:latest
