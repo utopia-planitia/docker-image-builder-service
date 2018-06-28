@@ -90,7 +90,7 @@ func isRequestingBuild(r string) bool {
 
 func (b *builder) build(w http.ResponseWriter, r *http.Request) {
 
-	tag, currentBranch, err := parseTagsAndBranches(r)
+	tag, currentBranch, headBranch, err := parseTagsAndBranches(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		message := fmt.Sprintf("failed to parse request: %s\n", err)
@@ -101,11 +101,11 @@ func (b *builder) build(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	load(tag, currentBranch)
-	configureRequest(r, cacheSources(tag, currentBranch))
+	cachedSources := restoreCache(tag, currentBranch, headBranch)
+	configureRequest(r, cachedSources)
 	log.Printf("docker forwarded request: %v\n", r)
 	b.docker.ServeHTTP(w, r)
-	save(tag, currentBranch)
+	archiveCache(tag, currentBranch)
 }
 
 func configureRequest(r *http.Request, tags []*tag) {
@@ -123,7 +123,7 @@ func configureRequest(r *http.Request, tags []*tag) {
 	}
 	cachefrom, err := json.Marshal(possibleCaches)
 	if err != nil {
-		log.Printf("failed to marshal local images: %s\n", err)
+		log.Printf("failed to marshal cachefrom: %s\n", err)
 	}
 	if cachefrom != nil {
 		values.Set("cachefrom", string(cachefrom))

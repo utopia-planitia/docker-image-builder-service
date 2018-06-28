@@ -8,26 +8,31 @@ import (
 	"strings"
 )
 
-func parseTagsAndBranches(r *http.Request) (*tag, string, error) {
+func parseTagsAndBranches(r *http.Request) (*tag, string, string, error) {
 
 	ts := r.URL.Query()["t"]
 	if len(ts) != 1 {
-		return &tag{}, "", errors.New("tag parameter is not set exactly once")
+		return &tag{}, "", "", errors.New("tag parameter is not set exactly once")
 	}
 
-	if err := errorOnCacheFromIsSet(r); err != nil {
-		return &tag{}, "", err
+	if err := denyUseOfCacheFrom(r); err != nil {
+		return &tag{}, "", "", err
 	}
 
-	branch := r.Header.Get("GitBranchName")
-	if branch == "" {
-		return &tag{}, "", errors.New("Branch not set via http header 'GitBranchName'")
+	currentBranch := r.Header.Get("GitBranchName")
+	if currentBranch == "" {
+		return &tag{}, "", "", errors.New("Branch not set via http header 'GitBranchName'")
 	}
 
-	return newTag(ts[0]), branch, nil
+	headBranch := r.Header.Get("GitHeadBranchName")
+	if headBranch == "" {
+		headBranch = "master"
+	}
+
+	return newTag(ts[0]), currentBranch, headBranch, nil
 }
 
-func errorOnCacheFromIsSet(r *http.Request) error {
+func denyUseOfCacheFrom(r *http.Request) error {
 	cfs := r.URL.Query()["cachefrom"]
 	if len(cfs) != 1 {
 		return errors.New("cachefrom parameter not set exactly one")
