@@ -67,7 +67,8 @@ func (s *dispatcher) handle(w http.ResponseWriter, r *http.Request) {
 	v := url.Values{}
 	v["t"] = r.URL.Query()["t"]
 	h := http.Header{}
-	h["t"] = r.Header["GitBranchName"]
+	h["GitBranchName"] = r.Header["GitBranchName"]
+	h["GitHeadBranchName"] = r.Header["GitHeadBranchName"]
 
 	b, err := s.selectWorker(c, v, h)
 	if err != nil {
