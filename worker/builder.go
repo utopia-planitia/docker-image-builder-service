@@ -41,7 +41,7 @@ type builder struct {
 	docker *httputil.ReverseProxy
 }
 
-func newBuilder(endpoint *url.URL, addr *string) *http.Server {
+func newBuilder(token string, endpoint *url.URL, addr *string) *http.Server {
 
 	d := httputil.NewSingleHostReverseProxy(endpoint)
 	d.FlushInterval = 100 * time.Millisecond
@@ -50,7 +50,16 @@ func newBuilder(endpoint *url.URL, addr *string) *http.Server {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", b.handle)
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		secretToken := r.Header.Get("SecretToken")
+		if secretToken == "" {
+			w.WriteHeader(http.StatusForbidden)
+			log.Printf("forbidden, token is: %s\n", secretToken)
+			return
+		}
+
+		b.handle(w, r)
+	})
 	mux.HandleFunc("/uncachedSize", uncachedSize)
 	mux.HandleFunc("/healthz", healthz)
 

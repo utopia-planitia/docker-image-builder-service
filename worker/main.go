@@ -15,10 +15,16 @@ func main() {
 
 	var err error
 
+	token := flag.String("secretToken", "", "secret token to verify build requests")
 	addr := flag.String("address", ":2375", "default server address, ':2375'")
 	target := flag.String("docker", "http://docker_1:2375", "docker url, 'http://docker_1:2375'")
 
 	flag.Parse()
+
+	if *token == "" {
+		log.Printf("secret token not set\n")
+		return
+	}
 
 	log.Printf("server will run on: %s\n", *addr)
 	log.Printf("use %v as docker\n", *target)
@@ -28,7 +34,7 @@ func main() {
 		log.Fatalf("failed to parse target: %s\n", err)
 	}
 
-	server := newBuilder(endpoint, addr)
+	server := newBuilder(*token, endpoint, addr)
 
 	// wait for an exit signal
 	stop := make(chan os.Signal, 2)
