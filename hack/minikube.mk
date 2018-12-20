@@ -1,23 +1,21 @@
  
-.PHONY: start
-start: ##@setup Starts minikube.
-	$(MAKE) init
-	$(MAKE) await
-
-.PHONY: init
-init:
-	./hack/start-minikube.sh
-	minikube update-context
-
-.PHONY: await
-await:
-	./hack/await-minikube.sh
-
-.PHONY: stop
-stop: ##@setup Stops minikube.
-	sudo -E systemctl stop localkube
-	docker ps -aq --filter name=k8s | xargs -r docker rm -f
 
 .PHONY: logs
 logs: ##@setup Shows logs.
 	ktail -n container-image-builder
+
+.PHONY: minikube-await
+minikube-await:
+	./hack/await-minikube.sh
+
+.PHONY: minikube-start
+minikube-start: ##@minikube start minikube
+	sudo CHANGE_MINIKUBE_NONE_USER=true minikube start --vm-driver=none --kubernetes-version v1.12.3
+
+.PHONY: minikube-stop
+minikube-stop: ##@minikube stop minikube
+	sudo minikube stop
+
+.PHONY: minikube-delete
+minikube-delete: ##@minikube remove minikube
+	sudo minikube delete

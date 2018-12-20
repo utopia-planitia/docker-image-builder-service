@@ -30,7 +30,7 @@ jobs:
       - run:
           name: init minikube
           command: |
-            make init
+            make minikube-start
             sleep 65536
           background: true
       - run:
