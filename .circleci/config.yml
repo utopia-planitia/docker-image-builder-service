@@ -18,12 +18,12 @@ jobs:
           name: install kubectl & minikube
           command: |
             if [ ! -f kubectl ]; then
-              curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/v1.8.4/bin/linux/amd64/kubectl
+              curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/v1.12.3/bin/linux/amd64/kubectl
             fi
             chmod +x kubectl
             sudo cp kubectl /usr/local/bin/
             if [ ! -f minikube ]; then
-              curl -Lo minikube https://github.com/kubernetes/minikube/releases/download/v0.25.0/minikube-linux-amd64
+              curl -Lo minikube https://github.com/kubernetes/minikube/releases/download/v0.31.0/minikube-linux-amd64
             fi
             chmod +x minikube
             sudo cp minikube /usr/local/bin/
