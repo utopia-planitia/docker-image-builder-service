@@ -29,6 +29,7 @@ done
 
 echo -n wait for dns to start
 for _ in {1..150}; do # timeout for 5 minutes
+  kubectl get pods -n kube-system
   if kubectl get --no-headers=true pods -n kube-system -l k8s-app=kube-dns | grep " Running " | grep "3/3" > /dev/null 2>&1; then
       echo " done"
       break
