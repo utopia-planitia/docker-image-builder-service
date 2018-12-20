@@ -17,7 +17,8 @@ jobs:
       - run:
           name: lint bash
           command: |
-            sudo sh -c "apt-get update && apt-get install shellcheck"
+            sudo apt-get update
+            sudo apt-get install shellcheck -y
             make lint-bash
       - run:
           name: install kubectl & minikube
