@@ -56,7 +56,7 @@ jobs:
       - run:
           name: wait for minikube
           command: |
-            make await
+            make minikube-await
       - save_cache:
           name: save tools cache
           key: tools-v6
