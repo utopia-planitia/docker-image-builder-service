@@ -17,6 +17,8 @@ jobs:
       - run:
           name: lint bash
           command: |
+            sudo apt-cache show shellcheck
+            sudo apt-get update
             sudo apt-get install shellcheck -y
             make lint-bash
       - run:
