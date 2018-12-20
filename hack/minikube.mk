@@ -10,7 +10,7 @@ minikube-await:
 
 .PHONY: minikube-start
 minikube-start: ##@minikube start minikube
-	sudo CHANGE_MINIKUBE_NONE_USER=true minikube start --vm-driver=none --kubernetes-version=v1.12.0
+	sudo CHANGE_MINIKUBE_NONE_USER=true minikube start --vm-driver=none --kubernetes-version=v1.12.3
 
 .PHONY: minikube-stop
 minikube-stop: ##@minikube stop minikube
