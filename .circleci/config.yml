@@ -3,7 +3,7 @@ jobs:
   build:
     machine:
       enabled: true
-      image: circleci/classic:201711-01
+      image: circleci/classic:201808-01
     environment:
       GOPATH: /home/circleci/go
       MINIKUBE_HOME: /home/circleci/go/src/github.com/utopia-planitia/docker-image-builder
