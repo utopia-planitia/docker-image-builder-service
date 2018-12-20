@@ -12,7 +12,7 @@ jobs:
       - restore_cache:
           name: restore tools cache
           keys:
-            - tools-v6
+            - tools-v7
       - checkout
       - run:
           name: install kubectl & minikube
@@ -28,12 +28,6 @@ jobs:
             chmod +x minikube
             sudo cp minikube /usr/local/bin/
       - run:
-          name: init minikube
-          command: |
-            make minikube-start
-            sleep 65536
-          background: true
-      - run:
           name: install go metalinter
           command: |
             if [ ! -d gometalinter ]; then
@@ -43,6 +37,22 @@ jobs:
               mv $GOPATH/bin/* gometalinter
             fi
             sudo cp gometalinter/* /usr/local/bin/
+      - run:
+          name: lint bash
+          command: |
+            sudo apt-get update
+            sudo apt-get install shellcheck
+            make lint-bash
+      - run:
+          name: lint go
+          command: |
+            make lint-go
+      - run:
+          name: init minikube
+          command: |
+            make minikube-start
+            sleep 65536
+          background: true
       - run:
           name: preload docker imags
           command: |
@@ -59,7 +69,7 @@ jobs:
             make minikube-await
       - save_cache:
           name: save tools cache
-          key: tools-v6
+          key: tools-v7
           paths:
             - kubectl
             - minikube
@@ -83,13 +93,3 @@ jobs:
           name: queue test
           command: |
             make queue-test
-      - run:
-          name: lint bash
-          command: |
-            sudo apt-get update
-            sudo apt-get install shellcheck
-            make lint-bash
-      - run:
-          name: lint go
-          command: |
-            make lint-go

@@ -29,7 +29,6 @@ done
 
 echo -n wait for pods to start
 for _ in {1..150}; do # timeout for 5 minutes
-  kubectl get pods -n kube-system
   if [ $(kubectl get --no-headers=true pods --all-namespaces=true 2>&1 | grep " Running " | grep "1/1" | wc -l) -eq "10" ]; then
       echo " done"
       break
