@@ -3,7 +3,7 @@ jobs:
   build:
     machine:
       enabled: true
-      image: circleci/classic:201808-01
+      image: circleci/classic:201812-01
     environment:
       GOPATH: /home/circleci/go
       MINIKUBE_HOME: /home/circleci/go/src/github.com/utopia-planitia/docker-image-builder
@@ -17,7 +17,6 @@ jobs:
       - run:
           name: lint bash
           command: |
-            sudo apt-get update
             sudo apt-get install shellcheck -y
             make lint-bash
       - run:
