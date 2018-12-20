@@ -27,33 +27,10 @@ for _ in {1..150}; do # timeout for 5 minutes
   sleep 2
 done
 
-echo -n wait for dns to start
+echo -n wait for pods to start
 for _ in {1..150}; do # timeout for 5 minutes
   kubectl get pods -n kube-system
-  if kubectl get --no-headers=true pods -n kube-system -l k8s-app=kube-dns | grep " Running " | grep "3/3" > /dev/null 2>&1; then
-      echo " done"
-      break
-  fi
-  echo -n .
-  sleep 2
-done
-
-# kubectl commands are now able to interact with Minikube cluster
-
-# workaround https://github.com/kubernetes/minikube/issues/1947
-echo -n getting name of kubedns pod
-for _ in {1..150}; do # timeout for 5 minutes
-  if KUBEDNS_POD=$(kubectl get --no-headers=true pods -n kube-system -l k8s-app=kube-dns -o custom-columns=:metadata.name); then
-      echo " done"
-      break
-  fi
-  echo -n .
-  sleep 2
-done
-
-echo -n fixing kubedns upstream server
-for _ in {1..150}; do # timeout for 5 minutes
-  if kubectl exec -n kube-system "$KUBEDNS_POD" -c kubedns -- sh -c "echo nameserver 8.8.8.8 > /etc/resolv.conf"; then
+  if [ $(kubectl get --no-headers=true pods --all-namespaces=true 2>&1 | grep " Running " | grep "1/1" | wc -l) -eq "10" ]; then
       echo " done"
       break
   fi
