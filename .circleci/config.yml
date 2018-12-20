@@ -15,6 +15,12 @@ jobs:
             - tools-v7
       - checkout
       - run:
+          name: lint bash
+          command: |
+            apt-get update
+            apt-get install shellcheck
+            make lint-bash
+      - run:
           name: install kubectl & minikube
           command: |
             if [ ! -f kubectl ]; then
@@ -37,12 +43,6 @@ jobs:
               mv $GOPATH/bin/* gometalinter
             fi
             sudo cp gometalinter/* /usr/local/bin/
-      - run:
-          name: lint bash
-          command: |
-            apt-get update
-            apt-get install shellcheck
-            make lint-bash
       - run:
           name: lint go
           command: |
