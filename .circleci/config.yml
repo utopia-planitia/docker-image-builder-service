@@ -15,10 +15,12 @@ jobs:
             - tools-v7
       - checkout
       - run:
+          name: apt-get update
+          command: |
+            sudo apt-get update
+      - run:
           name: lint bash
           command: |
-            sudo apt-cache show shellcheck
-            sudo apt-get update
             sudo apt-get install shellcheck -y
             make lint-bash
       - run:
