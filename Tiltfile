@@ -20,12 +20,14 @@ k8s_resource('dispatcher', port_forwards=['2375'])
 docker_build(
   'dispatcher-image',
   './dispatcher',
+  ignore=['vendor'],
   dockerfile='./dispatcher/Dockerfile',
 )
 
 docker_build(
   'worker-image',
   './worker',
+  ignore=['vendor'],
   dockerfile='./worker/Dockerfile',
 )
 
