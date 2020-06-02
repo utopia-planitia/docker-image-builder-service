@@ -11,10 +11,13 @@ The worker with the least amount of cache to catch up will be preferrd.
 
 ## Development
 
-local development happens via minikube
+Development happens in kubernetes via tilt.
 ```
-make start
-make deploy
+tilt up
+```
+
+Some tests and linter run locally.
+```
 make test
-make stop
+make lint
 ```

@@ -1,9 +1,11 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: dispatcher
-  namespace: container-image-builder
 spec:
+  selector:
+    matchLabels:
+      app: dispatcher
   replicas: 1
   template:
     metadata:
@@ -12,10 +14,10 @@ spec:
     spec:
       containers:
         - name: dispatcher
-          image: utopiaplanitia/docker-image-builder-dispatcher:latest
+          image: dispatcher-image
           imagePullPolicy: Never
           args:
-            - --workers=http://builder-0.builder.container-image-builder.svc.cluster.local:2375,http://builder-1.builder.container-image-builder.svc.cluster.local:2375
+            - --workers=http://builder-0.builder:2375,http://builder-1.builder:2375
           ports:
             - containerPort: 2375
               name: docker
@@ -31,7 +33,6 @@ kind: Service
 apiVersion: v1
 metadata:
   name: docker
-  namespace: container-image-builder
 spec:
   clusterIP: None
   ports:

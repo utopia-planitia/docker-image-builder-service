@@ -1,9 +1,11 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: devtools
-  namespace: container-image-builder
 spec:
+  selector:
+    matchLabels:
+      app: devtools
   replicas: 1
   template:
     metadata:
@@ -12,12 +14,12 @@ spec:
     spec:
       containers:
         - name: devtools
-          image: utopiaplanitia/docker-image-builder-devtools:latest
+          image: devtools-image
           imagePullPolicy: Never
           args:
             - sh
             - -c
-            - "sleep 4294967296"
+            - "sleep infinity"
           env:
             - name: DOCKER_HOST
               value: tcp://docker:2375

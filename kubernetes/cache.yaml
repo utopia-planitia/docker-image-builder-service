@@ -1,9 +1,11 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: cache
-  namespace: container-image-builder
 spec:
+  selector:
+    matchLabels:
+      app: cache
   replicas: 1
   template:
     metadata:
@@ -28,7 +30,6 @@ kind: Service
 apiVersion: v1
 metadata:
   name: cache
-  namespace: container-image-builder
 spec:
   clusterIP: None
   ports:

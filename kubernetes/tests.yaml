@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tests
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: tests
+    spec:
+      containers:
+      - name: tests
+        image: devtools-image
+        command:
+        - bats
+        - /tests/
+        env:
+        - name: DOCKER_HOST
+          value: tcp://docker:2375
+      restartPolicy: Never
