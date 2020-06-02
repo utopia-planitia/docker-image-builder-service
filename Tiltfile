@@ -11,7 +11,8 @@ k8s_yaml('kubernetes/tests.yaml')
 
 k8s_resource(
   'tests',
-  trigger_mode=TRIGGER_MODE_MANUAL
+  trigger_mode=TRIGGER_MODE_MANUAL,
+  resource_deps=['dispatcher', 'builder', 'cache', 'mirror'],
 )
 
 k8s_resource('dispatcher', port_forwards=['2375'])
