@@ -1,8 +1,16 @@
 FROM golang:1.14.4-alpine3.12 AS compile
-WORKDIR /go/src/github.com/utopia-planitia/docker-image-builder/
+
 RUN apk --no-cache add git
-COPY . worker
-RUN CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./worker
+RUN mkdir /worker
+WORKDIR /worker
+
+COPY go.mod go.mod
+COPY go.sum go.sum
+RUN go mod download
+
+COPY . /worker
+RUN CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo .
+
 
 FROM scratch
 COPY --from=compile /go/bin/worker /worker
