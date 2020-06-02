@@ -1,4 +1,4 @@
-FROM golang:1.10.0-alpine3.7 AS compile
+FROM golang:1.14.4-alpine3.12 AS compile
 WORKDIR /go/src/github.com/utopia-planitia/docker-image-builder/
 RUN apk --no-cache add git
 COPY . worker
