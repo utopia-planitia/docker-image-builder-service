@@ -17,7 +17,7 @@ spec:
           image: dispatcher-image
           imagePullPolicy: Never
           args:
-            - --workers=http://builder-0.builder:2375,http://builder-1.builder:2375
+            - --workers=http://builder-0.builder:2375,http://builder-1.builder:2375,http://builder-2.builder:2375,http://builder-3.builder:2375
           ports:
             - containerPort: 2375
               name: docker
