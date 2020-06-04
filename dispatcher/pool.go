@@ -86,6 +86,11 @@ func (s *dispatcher) findScheduleable(c clientID, v url.Values, h http.Header) (
 		if !scheduleable(b) {
 			continue
 		}
+
+		if !b.healthy() {
+			continue
+		}
+
 		selectableBuilders = append(selectableBuilders, b)
 	}
 	if len(selectableBuilders) == 0 {
@@ -187,6 +192,11 @@ func (s *dispatcher) findLeastConnected() (*builder, bool) {
 	var selected *builder
 	for _, i := range r.Perm(len(s.builders)) {
 		builder := s.builders[i]
+
+		if !builder.healthy() {
+			continue
+		}
+
 		if selected == nil {
 			selected = builder
 			continue

@@ -1,11 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"regexp"
+	"time"
 )
 
 var buildPath *regexp.Regexp
@@ -27,6 +30,33 @@ type builder struct {
 	openConnections int32
 	dedicatedTo     clientID
 	lastestUse      int64
+}
+
+func (b *builder) healthy() bool {
+	var netClient = &http.Client{
+		Timeout: time.Second * 10,
+		Transport: &http.Transport{
+			Dial: (&net.Dialer{
+				Timeout: 5 * time.Second,
+			}).Dial,
+			TLSHandshakeTimeout: 5 * time.Second,
+		},
+	}
+
+	response, err := netClient.Get(fmt.Sprintf("%s/healthy", b.name))
+	if err != nil {
+		log.Printf("health check %s: %v", b.name, err)
+		return false
+	}
+
+	defer response.Body.Close()
+
+	if response.StatusCode == http.StatusOK {
+		log.Printf("health check %s: status code %d", b.name, response.StatusCode)
+		return false
+	}
+
+	return true
 }
 
 func (b *builder) handle(w http.ResponseWriter, r *http.Request) {
